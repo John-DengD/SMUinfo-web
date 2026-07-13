@@ -1,0 +1,76 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build backend
+        run: mvn -B -DskipTests package
+        working-directory: backend
+
+      - name: Configure SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_SSH_KEY"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload backend jar
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
+        run: |
+          scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key backend/target/smu-deal-1.0.0.jar \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smu-deal-1.0.0.jar"
+
+      - name: Restart service
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
+          APP_DIR: ${{ secrets.APP_DIR || '/opt/smu-deal' }}
+          SERVICE_NAME: ${{ secrets.SERVICE_NAME || 'smu-deal.service' }}
+        run: |
+          ssh -p "$DEPLOY_PORT" -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            "set -eu
+             mkdir -p '$APP_DIR'
+             if [ -f '$APP_DIR/smu-deal.jar' ]; then
+               cp '$APP_DIR/smu-deal.jar' '$APP_DIR/smu-deal.jar.bak-'\"\$(date +%Y%m%d%H%M%S)\"
+             fi
+             install -m 0644 /tmp/smu-deal-1.0.0.jar '$APP_DIR/smu-deal.jar'
+             systemctl restart '$SERVICE_NAME'
+             sleep 5
+             systemctl is-active --quiet '$SERVICE_NAME'
+             systemctl --no-pager --lines=20 status '$SERVICE_NAME'"

@@ -27,6 +27,23 @@ smu-deal/
 
 ## 启动步骤
 
+## 自动部署
+
+仓库已配置 GitHub Actions：push 到 `main` 分支后会自动打包 `backend`，通过 SSH 上传到服务器并重启 `smu-deal.service`。
+
+需要在 GitHub 仓库的 `Settings -> Secrets and variables -> Actions` 里配置：
+
+| Secret | 必填 | 说明 |
+| ------ | ---- | ---- |
+| `DEPLOY_HOST` | 是 | 服务器 IP 或域名 |
+| `DEPLOY_SSH_KEY` | 是 | 可登录服务器的 SSH 私钥 |
+| `DEPLOY_USER` | 否 | SSH 用户，默认 `root` |
+| `DEPLOY_PORT` | 否 | SSH 端口，默认 `22` |
+| `APP_DIR` | 否 | 服务器应用目录，默认 `/opt/smu-deal` |
+| `SERVICE_NAME` | 否 | systemd 服务名，默认 `smu-deal.service` |
+
+服务器端需提前准备好 Java 17、数据库环境和 `smu-deal.service`。Actions 会把新包部署为 `/opt/smu-deal/smu-deal.jar`，并在替换前备份旧包。
+
 ### 1. 准备 MySQL
 
 默认连接本机 `localhost:3306` 的 `smu_deal` 数据库，用户名为 `root`，密码为空。部署环境请通过环境变量提供数据库凭据和 JWT 密钥，不要把真实凭据写入仓库。
