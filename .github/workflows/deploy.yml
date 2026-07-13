@@ -28,9 +28,25 @@ jobs:
           java-version: "17"
           cache: maven
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Build backend
         run: mvn -B -DskipTests package
         working-directory: backend
+
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+        working-directory: frontend
+
+      - name: Package frontend
+        run: tar -C frontend/dist -czf frontend-dist.tar.gz .
 
       - name: Configure SSH
         env:
@@ -54,13 +70,16 @@ jobs:
         run: |
           scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key backend/target/smu-deal-1.0.0.jar \
             "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smu-deal-1.0.0.jar"
+          scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key frontend-dist.tar.gz \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smu-deal-frontend.tar.gz"
 
-      - name: Restart service
+      - name: Deploy and restart services
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
           APP_DIR: ${{ secrets.APP_DIR || '/opt/smu-deal' }}
+          WEB_DIR: ${{ secrets.WEB_DIR || '/var/www/smu-deal' }}
           SERVICE_NAME: ${{ secrets.SERVICE_NAME || 'smu-deal.service' }}
         run: |
           ssh -p "$DEPLOY_PORT" -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
@@ -70,7 +89,15 @@ jobs:
                cp '$APP_DIR/smu-deal.jar' '$APP_DIR/smu-deal.jar.bak-'\"\$(date +%Y%m%d%H%M%S)\"
              fi
              install -m 0644 /tmp/smu-deal-1.0.0.jar '$APP_DIR/smu-deal.jar'
+             mkdir -p '$WEB_DIR'
+             if [ -f '$WEB_DIR/index.html' ]; then
+               tar -C '$WEB_DIR' -czf '$APP_DIR/frontend.bak-'\"\$(date +%Y%m%d%H%M%S)\"'.tar.gz' .
+             fi
+             find '$WEB_DIR' -mindepth 1 -maxdepth 1 ! -name '.well-known' -exec rm -rf {} +
+             tar -xzf /tmp/smu-deal-frontend.tar.gz -C '$WEB_DIR'
              systemctl restart '$SERVICE_NAME'
              sleep 5
              systemctl is-active --quiet '$SERVICE_NAME'
+             nginx -t
+             systemctl reload nginx
              systemctl --no-pager --lines=20 status '$SERVICE_NAME'"

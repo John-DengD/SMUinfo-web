@@ -29,7 +29,7 @@ smu-deal/
 
 ## 自动部署
 
-仓库已配置 GitHub Actions：push 到 `main` 分支后会自动打包 `backend`，通过 SSH 上传到服务器并重启 `smu-deal.service`。
+仓库已配置 GitHub Actions：push 到 `main` 分支后会自动打包 `backend` 和 `frontend`，通过 SSH 上传到服务器，替换后端 JAR、发布前端静态文件，并重启 `smu-deal.service`、reload Nginx。
 
 需要在 GitHub 仓库的 `Settings -> Secrets and variables -> Actions` 里配置：
 
@@ -40,9 +40,10 @@ smu-deal/
 | `DEPLOY_USER` | 否 | SSH 用户，默认 `root` |
 | `DEPLOY_PORT` | 否 | SSH 端口，默认 `22` |
 | `APP_DIR` | 否 | 服务器应用目录，默认 `/opt/smu-deal` |
+| `WEB_DIR` | 否 | 前端 Nginx 站点目录，默认 `/var/www/smu-deal` |
 | `SERVICE_NAME` | 否 | systemd 服务名，默认 `smu-deal.service` |
 
-服务器端需提前准备好 Java 17、数据库环境和 `smu-deal.service`。Actions 会把新包部署为 `/opt/smu-deal/smu-deal.jar`，并在替换前备份旧包。
+服务器端需提前准备好 Java 17、数据库环境、Nginx 和 `smu-deal.service`。Actions 会把新后端包部署为 `/opt/smu-deal/smu-deal.jar`，并在替换前备份旧包；前端默认发布到 `/var/www/smu-deal`，发布前会备份原 `index.html` 所在目录内容。
 
 ### 1. 准备 MySQL
 
