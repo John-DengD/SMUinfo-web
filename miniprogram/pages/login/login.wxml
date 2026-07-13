@@ -1,0 +1,25 @@
+<view class="page auth-page">
+  <view class="auth-card surface">
+    <view class="brand">
+      <view class="brand-mark">CJ</view>
+      <view class="brand-name">
+        <text class="brand-word brand-word-cute">Cute</text>
+        <text class="brand-word brand-word-jone"> Jone</text>
+      </view>
+    </view>
+    <view class="title">冒险继续</view>
+    <view class="subtitle">登录后发布宝物、收藏战利品</view>
+
+    <view class="field">
+      <text class="label">学号</text>
+      <input class="input" value="{{form.studentNo}}" placeholder="请输入学号" bindinput="onInput" data-field="studentNo" />
+    </view>
+    <view class="field">
+      <text class="label">密码</text>
+      <input class="input" value="{{form.password}}" password placeholder="请输入密码" bindinput="onInput" data-field="password" />
+    </view>
+
+    <button class="primary-btn submit" loading="{{loading}}" bindtap="submit">登录</button>
+    <button class="ghost-btn switch" bindtap="goRegister">还没有账号，去注册</button>
+  </view>
+</view>

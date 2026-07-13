@@ -1,0 +1,60 @@
+<view class="page admin-page announcement-admin-page">
+  <view class="admin-toolbar">
+    <view>
+      <view class="admin-heading">公告管理</view>
+      <view class="admin-sub">启用中的公告会显示在小程序首页顶部</view>
+    </view>
+    <button class="search-btn publish-btn" bindtap="openCreate">发布</button>
+  </view>
+
+  <view wx:if="{{announcements.length}}" class="admin-list">
+    <view wx:for="{{announcements}}" wx:key="id" class="admin-card surface announcement-card">
+      <view class="admin-card-main">
+        <view class="announcement-card-head">
+          <view class="admin-title">{{item.title}}</view>
+          <view class="status-pill {{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+        <view class="announcement-content">{{item.content}}</view>
+        <view class="admin-meta">发布：{{item.createdText}}</view>
+        <view class="admin-meta">更新：{{item.updatedText}}</view>
+        <view class="announcement-actions">
+          <button class="mini-action edit" catchtap="openEdit" data-id="{{item.id}}">编辑</button>
+          <button class="mini-action {{item.actionClass}}" catchtap="changeStatus" data-id="{{item.id}}" data-status="{{item.actionStatus}}" data-title="{{item.title}}" loading="{{operatingId == item.id}}">{{item.actionText}}</button>
+          <button class="mini-action delete" catchtap="remove" data-id="{{item.id}}" data-title="{{item.title}}" loading="{{operatingId == item.id}}">删除</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{emptyVisible}}" class="empty">还没有公告</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:if="{{formVisible}}" class="form-mask" catchtap="closeForm">
+    <view class="form-panel" catchtap="noop">
+      <view class="form-head">
+        <view class="form-title">{{formTitle}}</view>
+        <view class="form-close" bindtap="closeForm">×</view>
+      </view>
+
+      <view class="form-field">
+        <view class="form-label">标题</view>
+        <input class="form-input" value="{{form.title}}" maxlength="80" placeholder="请输入公告标题" bindinput="onTitleInput" />
+      </view>
+
+      <view class="form-field">
+        <view class="form-label">内容</view>
+        <textarea class="form-textarea" value="{{form.content}}" maxlength="500" placeholder="请输入公告内容" bindinput="onContentInput" />
+      </view>
+
+      <view class="form-switch-row">
+        <view>
+          <view class="form-label">启用公告</view>
+          <view class="form-tip">启用后会自动停用其他公告</view>
+        </view>
+        <switch checked="{{activeChecked}}" bindchange="onStatusChange" color="#ff3158" />
+      </view>
+
+      <button class="primary-submit" loading="{{saving}}" bindtap="submit">保存公告</button>
+    </view>
+  </view>
+</view>

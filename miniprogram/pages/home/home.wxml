@@ -1,0 +1,118 @@
+<view class="page home-page">
+  <view class="brand surface">
+    <view class="brand-mark">CJ</view>
+    <view class="brand-text">
+      <view class="brand-title">
+        <text class="brand-word brand-word-cute">Cute</text>
+        <text class="brand-word brand-word-jone"> Jone</text>
+      </view>
+      <view class="brand-sub">校园闲置的奇妙冒险</view>
+    </view>
+    <view class="action-burst">GO!</view>
+  </view>
+
+  <view wx:if="{{announcementVisible}}" class="announcement-bubble">
+    <view class="announcement-icon">告</view>
+    <view class="announcement-content">
+      <view class="announcement-title">{{announcement.title}}</view>
+      <view class="announcement-text">{{announcement.content}}</view>
+    </view>
+    <view class="announcement-close" bindtap="closeAnnouncement">×</view>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" value="{{keyword}}" placeholder="搜索教材 / 电子产品 / 宿舍用品" confirm-type="search" bindinput="onKeywordInput" bindconfirm="onSearch" />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+  </view>
+
+  <view class="transit-card surface">
+    <view class="transit-main">
+      <view class="transit-left">
+        <view class="transit-kicker">出行时刻</view>
+        <picker mode="selector" range="{{transitRouteLabels}}" value="{{transitRouteIndex}}" bindchange="onTransitRouteChange">
+          <view class="transit-route transit-route-picker">{{transitRouteLabel}}</view>
+        </picker>
+        <view class="transit-schedule">{{transitScheduleText}}</view>
+        <view wx:if="{{transitSpecialText}}" class="transit-special">{{transitSpecialText}}</view>
+      </view>
+      <view class="transit-times">
+        <view class="transit-time-item">
+          <text class="transit-label">最近</text>
+          <text class="transit-time">{{transitNearestText}}</text>
+        </view>
+        <view class="transit-time-item">
+          <text class="transit-label">下一班</text>
+          <text class="transit-time">{{transitNextText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="life-entry surface" bindtap="goLostFound">
+    <view class="life-entry-mark">寻</view>
+    <view class="life-entry-main">
+      <view class="life-entry-title">失物招领</view>
+      <view class="life-entry-sub">丢了东西或捡到东西，可以在这里发布</view>
+    </view>
+    <view class="life-entry-arrow">›</view>
+  </view>
+
+  <view class="category-bar surface">
+    <view class="category-head" bindtap="toggleCategories">
+      <view class="category-title">商品分类</view>
+      <view class="category-current">{{categoryToggleText}}</view>
+    </view>
+    <scroll-view wx:if="{{categoryExpanded}}" scroll-x class="category-scroll">
+      <view class="category-list">
+        <view class="category-chip {{allCategoryActive}}" bindtap="selectCategory" data-id="" data-name="全部">全部</view>
+        <view wx:for="{{categories}}" wx:key="id" class="category-chip {{item.activeClass}}" bindtap="selectCategory" data-id="{{item.id}}" data-name="{{item.name}}">{{item.name}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <scroll-view scroll-x class="sort-scroll">
+    <view class="sort-list">
+      <view class="sort-chip {{sortLatestClass}}" bindtap="selectSort" data-value="">最新</view>
+      <view class="sort-chip {{sortPriceAscClass}}" bindtap="selectSort" data-value="price_asc">价格低</view>
+      <view class="sort-chip {{sortPriceDescClass}}" bindtap="selectSort" data-value="price_desc">价格高</view>
+      <view class="sort-chip {{sortHotClass}}" bindtap="selectSort" data-value="hot">热度</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{products.length}}" class="product-grid">
+    <view wx:for="{{products}}" wx:key="id" class="product-card" bindtap="goDetail" data-id="{{item.id}}">
+      <image wx:if="{{item.cover}}" class="product-cover" mode="aspectFill" src="{{item.coverUrl}}" />
+      <view wx:else class="product-cover product-placeholder">暂无图片</view>
+      <view class="product-body">
+        <view class="product-title">{{item.title}}</view>
+        <view class="product-price">¥{{item.priceText}}</view>
+        <view class="product-meta">{{item.metaText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{emptyVisible}}" class="empty">暂时没有出现新的宝物</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <button class="publish-fab" bindtap="goPublish" hover-class="publish-fab-hover">
+    <text class="publish-plus">+</text>
+    <text class="publish-text">发布</text>
+  </button>
+
+  <view class="cute-tabbar">
+    <view class="cute-tab active">
+      <text class="cute-tab-mark">CJ</text>
+      <view class="cute-tab-copy">
+        <text class="cute-tab-main">宝物岛</text>
+        <text class="cute-tab-sub">HOME</text>
+      </view>
+    </view>
+    <view class="cute-tab" bindtap="goMe">
+      <text class="cute-tab-mark">ME</text>
+      <view class="cute-tab-copy">
+        <text class="cute-tab-main">小基地</text>
+        <text class="cute-tab-sub">ME</text>
+      </view>
+    </view>
+  </view>
+</view>

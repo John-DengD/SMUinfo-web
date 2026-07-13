@@ -1,0 +1,46 @@
+<view class="page publish-page">
+  <view class="form-card">
+    <view class="page-title">发布失物招领</view>
+    <view class="page-sub">写清楚物品、地点和联系方式，方便同学联系你</view>
+
+    <view class="field">
+      <text class="label">类型</text>
+      <picker range="{{typeOptions}}" value="{{typeIndex}}" bindchange="onTypeChange">
+        <view class="picker-box">{{typeDisplay}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="label">标题</text>
+      <input class="input" maxlength="80" value="{{form.title}}" placeholder="例如：丢失校园卡 / 捡到耳机" bindinput="onInput" data-field="title" />
+    </view>
+
+    <view class="field">
+      <text class="label">地点</text>
+      <input class="input" maxlength="128" value="{{form.location}}" placeholder="例如：图书馆二楼 / 临港大道站" bindinput="onInput" data-field="location" />
+    </view>
+
+    <view class="field">
+      <text class="label">联系方式</text>
+      <input class="input" maxlength="128" value="{{form.contact}}" placeholder="手机号 / 微信 / 私信均可" bindinput="onInput" data-field="contact" />
+    </view>
+
+    <view class="field">
+      <text class="label">详细描述</text>
+      <textarea class="textarea" maxlength="1000" value="{{form.description}}" placeholder="说明物品特征、时间、认领方式等" bindinput="onInput" data-field="description" />
+    </view>
+
+    <view class="field">
+      <text class="label">图片</text>
+      <view class="image-grid">
+        <view wx:for="{{imageUrls}}" wx:key="*this" class="image-item">
+          <image class="image-thumb" src="{{item}}" mode="aspectFill" />
+          <view class="remove" bindtap="removeImage" data-index="{{index}}">×</view>
+        </view>
+        <view wx:if="{{imageUrls.length < 6}}" class="image-add" bindtap="chooseImages">+</view>
+      </view>
+    </view>
+
+    <button class="primary-btn" loading="{{loading}}" bindtap="submit">发布</button>
+  </view>
+</view>

@@ -1,0 +1,36 @@
+<view class="page auth-page">
+  <view class="auth-card surface">
+    <view class="brand">
+      <view class="brand-mark">CJ</view>
+      <view class="brand-name">
+        <text class="brand-word brand-word-cute">Cute</text>
+        <text class="brand-word brand-word-jone"> Jone</text>
+      </view>
+    </view>
+    <view class="title">加入冒险</view>
+    <view class="subtitle">真实姓名 + 12 位数字学号</view>
+
+    <view class="field">
+      <text class="label">姓名</text>
+      <input class="input" maxlength="20" value="{{form.name}}" placeholder="真实姓名" bindinput="onInput" data-field="name" />
+    </view>
+    <view class="field">
+      <text class="label">学号</text>
+      <input class="input" type="number" maxlength="12" value="{{form.studentNo}}" placeholder="12 位数字学号" bindinput="onInput" data-field="studentNo" />
+    </view>
+    <view class="field">
+      <text class="label">密码</text>
+      <input class="input" password value="{{form.password}}" placeholder="至少 6 位" bindinput="onInput" data-field="password" />
+    </view>
+    <view class="field">
+      <text class="label">学院</text>
+      <input class="input" value="{{form.college}}" placeholder="可选" bindinput="onInput" data-field="college" />
+    </view>
+    <view class="field">
+      <text class="label">校区</text>
+      <input class="input" value="{{form.campus}}" placeholder="可选" bindinput="onInput" data-field="campus" />
+    </view>
+
+    <button class="primary-btn submit" loading="{{loading}}" bindtap="submit">注册</button>
+  </view>
+</view>

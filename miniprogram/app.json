@@ -1,0 +1,30 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/publish/publish",
+    "pages/me/me",
+    "pages/detail/detail",
+    "pages/lost-found/lost-found",
+    "pages/lost-found-publish/lost-found-publish",
+    "pages/lost-found-detail/lost-found-detail",
+    "pages/login/login",
+    "pages/register/register",
+    "pages/messages/messages",
+    "pages/chat/chat",
+    "pages/orders/orders",
+    "pages/profile/profile",
+    "pages/admin-users/admin-users",
+    "pages/admin-products/admin-products",
+    "pages/admin-announcements/admin-announcements",
+    "pages/favorites/favorites",
+    "pages/my-products/my-products"
+  ],
+  "window": {
+    "navigationBarTitleText": "Cute Jone",
+    "navigationBarBackgroundColor": "#fff3b0",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff7d6"
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

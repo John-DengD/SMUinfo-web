@@ -1,0 +1,166 @@
+.lost-found-page {
+  padding-bottom: 70rpx;
+}
+
+.lost-head {
+  display: flex;
+  gap: 18rpx;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+  padding: 24rpx;
+}
+
+.publish-btn {
+  width: 132rpx;
+}
+
+.search-row {
+  display: flex;
+  gap: 14rpx;
+  margin-bottom: 22rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 76rpx;
+  padding: 0 22rpx;
+  background: #fffef6;
+  border: 4rpx solid #1b1026;
+  border-radius: 18rpx;
+  font-size: 27rpx;
+  box-shadow: 5rpx 5rpx 0 #1b1026;
+}
+
+.search-btn {
+  width: 132rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  margin: 0;
+  color: #fff;
+  background: #ff3158;
+  border: 4rpx solid #1b1026;
+  border-radius: 18rpx;
+  font-size: 27rpx;
+  font-weight: 900;
+  box-shadow: 5rpx 5rpx 0 #1b1026;
+}
+
+.type-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-bottom: 22rpx;
+  padding: 14rpx;
+}
+
+.type-tab {
+  height: 66rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1b1026;
+  background: #fff7d6;
+  border: 3rpx solid #1b1026;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.type-tab.active {
+  background: #8ff3ff;
+  box-shadow: 4rpx 4rpx 0 #1b1026;
+}
+
+.lost-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.lost-card {
+  display: flex;
+  overflow: hidden;
+}
+
+.lost-cover {
+  width: 188rpx;
+  min-height: 188rpx;
+  background: linear-gradient(135deg, #ffe066, #8ff3ff);
+  border-right: 4rpx solid #1b1026;
+}
+
+.lost-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1b1026;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.lost-body {
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx;
+}
+
+.lost-card-head {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.lost-type {
+  flex: 0 0 auto;
+  padding: 6rpx 12rpx;
+  color: #1b1026;
+  border: 3rpx solid #1b1026;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.lost-type.lost {
+  background: #ffd23f;
+}
+
+.lost-type.found {
+  background: #8ff3ff;
+}
+
+.lost-time {
+  min-width: 0;
+  color: #8a7a4a;
+  font-size: 22rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lost-title {
+  margin-top: 12rpx;
+  color: #1b1026;
+  font-size: 30rpx;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lost-desc {
+  margin-top: 8rpx;
+  color: #6d5b2f;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.loading {
+  padding: 24rpx;
+  color: #9ca3af;
+  text-align: center;
+}

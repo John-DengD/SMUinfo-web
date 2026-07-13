@@ -1,0 +1,29 @@
+<view class="page profile-page">
+  <view class="form-card">
+    <view class="page-title">编辑资料</view>
+    <view class="page-sub">学号不可修改，姓名仍会按真实姓名规则校验</view>
+
+    <view class="field">
+      <text class="label">姓名</text>
+      <input class="input" maxlength="20" value="{{form.name}}" placeholder="真实姓名" bindinput="onInput" data-field="name" />
+    </view>
+    <view class="field">
+      <text class="label">学号</text>
+      <input class="input disabled" value="{{form.studentNo}}" disabled />
+    </view>
+    <view class="field">
+      <text class="label">手机</text>
+      <input class="input" value="{{form.phone}}" placeholder="可选" bindinput="onInput" data-field="phone" />
+    </view>
+    <view class="field">
+      <text class="label">学院</text>
+      <input class="input" value="{{form.college}}" placeholder="例如：计算机学院" bindinput="onInput" data-field="college" />
+    </view>
+    <view class="field">
+      <text class="label">校区</text>
+      <input class="input" value="{{form.campus}}" placeholder="例如：主校区" bindinput="onInput" data-field="campus" />
+    </view>
+
+    <button class="primary-btn" loading="{{loading}}" bindtap="save">保存资料</button>
+  </view>
+</view>

@@ -1,0 +1,31 @@
+@import "../detail/detail.wxss";
+
+.lost-detail-page {
+  padding-bottom: 70rpx;
+}
+
+.lost-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.lost-type {
+  flex: 0 0 auto;
+  padding: 8rpx 16rpx;
+  color: #1b1026;
+  border: 3rpx solid #1b1026;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.lost-type.lost {
+  background: #ffd23f;
+}
+
+.lost-type.found {
+  background: #8ff3ff;
+}

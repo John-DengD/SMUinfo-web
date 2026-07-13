@@ -1,0 +1,139 @@
+.chat-page {
+  min-height: 100vh;
+  padding-bottom: 220rpx;
+}
+
+.chat-head {
+  padding: 22rpx;
+}
+
+.peer-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.peer-avatar {
+  width: 74rpx;
+  height: 74rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fffef6;
+  background: linear-gradient(135deg, #ff3158, #7c3aed);
+  border: 4rpx solid #1b1026;
+  border-radius: 50%;
+  font-size: 30rpx;
+  font-weight: 900;
+  box-shadow: 5rpx 5rpx 0 #1b1026;
+}
+
+.peer-main {
+  min-width: 0;
+}
+
+.peer-name {
+  color: #1b1026;
+  font-size: 31rpx;
+  font-weight: 900;
+}
+
+.peer-sub {
+  margin-top: 6rpx;
+  color: #7a3414;
+  font-size: 24rpx;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-body {
+  height: calc(100vh - 430rpx);
+  margin-top: 20rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.message-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 22rpx;
+}
+
+.message-row.self {
+  align-items: flex-end;
+}
+
+.message-bubble {
+  max-width: 74%;
+  padding: 18rpx 20rpx;
+  color: #1b1026;
+  background: #fff7d6;
+  border: 3rpx solid #1b1026;
+  border-radius: 18rpx 18rpx 18rpx 4rpx;
+  font-size: 27rpx;
+  line-height: 40rpx;
+  word-break: break-word;
+  box-shadow: 4rpx 4rpx 0 #1b1026;
+}
+
+.message-row.self .message-bubble {
+  color: #fffef6;
+  background: #7c3aed;
+  border-radius: 18rpx 18rpx 4rpx 18rpx;
+}
+
+.message-time {
+  margin-top: 8rpx;
+  color: #8a7a4a;
+  font-size: 21rpx;
+}
+
+.chat-empty {
+  padding: 120rpx 0;
+  color: #8a7a4a;
+  text-align: center;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.chat-compose {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 24rpx;
+  z-index: 60;
+  display: flex;
+  gap: 14rpx;
+  align-items: flex-end;
+  padding: 16rpx;
+}
+
+.chat-input {
+  flex: 1;
+  min-height: 84rpx;
+  max-height: 160rpx;
+  padding: 14rpx 18rpx;
+  box-sizing: border-box;
+  color: #1b1026;
+  background: #fff;
+  border: 3rpx solid #1b1026;
+  border-radius: 16rpx;
+  font-size: 27rpx;
+  line-height: 38rpx;
+}
+
+.send-btn {
+  width: 132rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  font-size: 26rpx;
+}
+
+.loading {
+  padding: 24rpx;
+  color: #9ca3af;
+  text-align: center;
+}

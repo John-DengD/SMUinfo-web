@@ -1,0 +1,108 @@
+<view class="page me-page">
+  <view wx:if="{{!user}}" class="guest surface">
+    <view class="guest-title">登录后使用完整功能</view>
+    <view class="guest-sub">发布闲置、收藏商品、管理个人信息</view>
+    <button class="primary-btn" bindtap="goLogin">登录 / 注册</button>
+  </view>
+
+  <view wx:else>
+    <view class="profile surface">
+      <view class="avatar">{{initial}}</view>
+      <view class="profile-main">
+        <view class="name">{{user.name}}</view>
+        <view class="student">{{user.studentNo}}</view>
+        <view class="campus">{{collegeText}} · {{campusText}}</view>
+      </view>
+    </view>
+
+    <view class="menu surface">
+      <view class="menu-item" bindtap="goProfile">
+        <view>
+          <view class="menu-title">编辑资料</view>
+          <view class="menu-sub">修改姓名、手机、学院和校区</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view class="menu-item" bindtap="goFavorites">
+        <view>
+          <view class="menu-title">我的收藏</view>
+          <view class="menu-sub">查看已收藏的闲置商品</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view class="menu-item" bindtap="goMyProducts">
+        <view>
+          <view class="menu-title">我的发布</view>
+          <view class="menu-sub">查看自己发布的闲置商品</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view class="menu-item" bindtap="goMessages">
+        <view>
+          <view class="menu-title">我的私信 <text wx:if="{{unreadCount}}" class="badge">{{unreadCount}}</text></view>
+          <view class="menu-sub">{{messageSub}}</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view class="menu-item" bindtap="goOrders">
+        <view>
+          <view class="menu-title">我的预约</view>
+          <view class="menu-sub">确认买家的预约申请和交易状态</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view wx:if="{{isAdmin}}" class="menu-item admin-item" bindtap="goAdminUsers">
+        <view>
+          <view class="menu-title">用户管理</view>
+          <view class="menu-sub">管理员启用或禁用用户</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view wx:if="{{isAdmin}}" class="menu-item admin-item" bindtap="goAdminProducts">
+        <view>
+          <view class="menu-title">商品管理</view>
+          <view class="menu-sub">管理员下架或恢复商品</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view wx:if="{{isAdmin}}" class="menu-item admin-item" bindtap="goAdminAnnouncements">
+        <view>
+          <view class="menu-title">公告管理</view>
+          <view class="menu-sub">发布首页公告和切换启用状态</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view class="menu-item" bindtap="refreshMe">
+        <view>
+          <view class="menu-title">刷新资料</view>
+          <view class="menu-sub">同步网页端最新个人信息</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+      <view class="menu-item" bindtap="logout">
+        <view>
+          <view class="menu-title danger">退出登录</view>
+          <view class="menu-sub">清除本机登录状态</view>
+        </view>
+        <view class="arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="cute-tabbar">
+    <view class="cute-tab" bindtap="goHome">
+      <text class="cute-tab-mark">CJ</text>
+      <view class="cute-tab-copy">
+        <text class="cute-tab-main">宝物岛</text>
+        <text class="cute-tab-sub">HOME</text>
+      </view>
+    </view>
+    <view class="cute-tab active">
+      <text class="cute-tab-mark">ME</text>
+      <view class="cute-tab-copy">
+        <text class="cute-tab-main">小基地</text>
+        <text class="cute-tab-sub">ME</text>
+      </view>
+    </view>
+  </view>
+</view>

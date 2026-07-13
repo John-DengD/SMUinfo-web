@@ -1,0 +1,24 @@
+<view class="page messages-page">
+  <view class="surface page-head">
+    <view class="page-title">我的私信</view>
+    <view class="page-sub">和买家、卖家继续沟通商品细节</view>
+  </view>
+
+  <view wx:if="{{conversations.length}}" class="conversation-list surface">
+    <view wx:for="{{conversations}}" wx:key="peerId" class="conversation-item" bindtap="goChat" data-index="{{index}}">
+      <view class="conv-avatar">{{item.avatarText}}</view>
+      <view class="conv-main">
+        <view class="conv-top">
+          <view class="conv-name">{{item.peerNameText}}</view>
+          <view class="conv-time">{{item.timeText}}</view>
+        </view>
+        <view class="conv-last">{{item.lastContentText}}</view>
+        <view class="conv-product">{{item.productText}}</view>
+      </view>
+      <view wx:if="{{item.unreadCount}}" class="conv-badge">{{item.unreadCount}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{emptyVisible}}" class="empty">还没有私信</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

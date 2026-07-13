@@ -1,0 +1,22 @@
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.log
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Java build and runtime data
+backend/target/
+backend/uploads/
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+
+# WeChat developer tools local settings
+miniprogram/project.config.json
+miniprogram/project.private.config.json

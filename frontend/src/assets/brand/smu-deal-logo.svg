@@ -1,0 +1,40 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="156" y1="112" x2="874" y2="904" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18B7A5"/>
+      <stop offset="0.52" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="tower" x1="416" y1="330" x2="612" y2="818" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EAF8FF"/>
+    </linearGradient>
+    <filter id="shadow" x="256" y="172" width="512" height="716" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="24"/>
+      <feGaussianBlur stdDeviation="32"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.03 0 0 0 0 0.07 0 0 0 0 0.18 0 0 0 0.24 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
+  <path d="M133 714C255 743 389 720 512 654C637 586 771 561 908 623V1024H133V714Z" fill="#071D49" fill-opacity="0.16"/>
+
+  <path d="M282 393L420 337" stroke="#FFFFFF" stroke-opacity="0.72" stroke-width="54" stroke-linecap="round"/>
+  <path d="M742 393L604 337" stroke="#FFFFFF" stroke-opacity="0.72" stroke-width="54" stroke-linecap="round"/>
+
+  <g filter="url(#shadow)">
+    <path d="M384 812H640C662 812 680 830 680 852V866H344V852C344 830 362 812 384 812Z" fill="#FFFFFF"/>
+    <path d="M421 812L462 388H562L603 812H421Z" fill="url(#tower)"/>
+    <path d="M442 572H582" stroke="#18B7A5" stroke-width="38" stroke-linecap="round"/>
+
+    <path d="M394 392H630L512 244L394 392Z" fill="#FFFFFF"/>
+    <path d="M462 392V343C462 315 484 293 512 293C540 293 562 315 562 343V392H462Z" fill="#18B7A5"/>
+    <circle cx="512" cy="354" r="21" fill="#FFFFFF"/>
+  </g>
+
+  <path d="M396 870C429 850 468 840 512 840C556 840 595 850 628 870" stroke="#FFFFFF" stroke-opacity="0.24" stroke-width="28" stroke-linecap="round"/>
+</svg>

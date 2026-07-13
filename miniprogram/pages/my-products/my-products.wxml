@@ -1,0 +1,18 @@
+<view class="page">
+  <view wx:if="{{products.length}}" class="product-grid">
+    <view wx:for="{{products}}" wx:key="id" class="product-card my-product-card" bindtap="goDetail" data-id="{{item.id}}">
+      <image wx:if="{{item.cover}}" class="product-cover" mode="aspectFill" src="{{item.coverUrl}}" />
+      <view wx:else class="product-cover product-placeholder">暂无图片</view>
+      <view class="product-body">
+        <view class="product-title">{{item.title}}</view>
+        <view class="product-price">¥{{item.priceText}}</view>
+        <view class="product-meta">{{item.metaText}}</view>
+        <view class="product-actions">
+          <button class="mini-action {{item.actionClass}}" catchtap="changeStatus" data-id="{{item.id}}" data-status="{{item.actionStatus}}" loading="{{operatingId == item.id}}">{{item.actionText}}</button>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{emptyVisible}}" class="empty">还没有发布商品</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

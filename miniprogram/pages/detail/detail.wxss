@@ -1,0 +1,263 @@
+.gallery {
+  width: 100%;
+  height: 720rpx;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffe066, #8ff3ff);
+  border: 4rpx solid #1b1026;
+  border-radius: 24rpx;
+  box-shadow: 8rpx 8rpx 0 #1b1026;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 100%;
+}
+
+.no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+.info,
+.seller {
+  margin-top: 20rpx;
+  padding: 24rpx;
+}
+
+.title {
+  color: #1b1026;
+  font-size: 36rpx;
+  font-weight: 900;
+  line-height: 48rpx;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.price {
+  color: #d21f3c;
+  font-size: 44rpx;
+  font-weight: 900;
+}
+
+.origin {
+  color: #9ca3af;
+  font-size: 24rpx;
+  text-decoration: line-through;
+}
+
+.status {
+  margin-left: auto;
+  color: #7c3aed;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12rpx 20rpx;
+  margin-top: 22rpx;
+  color: #6d5b2f;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.desc {
+  margin-top: 22rpx;
+  padding: 20rpx;
+  color: #1b1026;
+  background: #fff7d6;
+  border: 3rpx solid #1b1026;
+  border-radius: 16rpx;
+  font-size: 27rpx;
+  line-height: 42rpx;
+}
+
+.seller {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.avatar {
+  width: 76rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, #ff3158, #7c3aed);
+  border: 4rpx solid #1b1026;
+  border-radius: 50%;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.seller-name {
+  color: #1b1026;
+  font-size: 29rpx;
+  font-weight: 900;
+}
+
+.seller-campus {
+  margin-top: 6rpx;
+  color: #6d5b2f;
+  font-size: 24rpx;
+}
+
+.actions {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+}
+
+.reserve-btn {
+  width: 100%;
+  height: 82rpx;
+  line-height: 82rpx;
+  margin: 20rpx 0 0;
+  color: #1b1026;
+  background: #ffd23f;
+  border: 4rpx solid #1b1026;
+  border-radius: 18rpx;
+  font-size: 29rpx;
+  font-weight: 900;
+  box-shadow: 6rpx 6rpx 0 #1b1026;
+}
+
+.reserve-btn::after {
+  border: 0;
+}
+
+.comments {
+  margin-top: 24rpx;
+  padding: 24rpx;
+}
+
+.comments-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.comments-title {
+  color: #1b1026;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.comments-count {
+  color: #d21f3c;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.comment-compose {
+  margin-top: 18rpx;
+  padding: 16rpx;
+  background: #fff7d6;
+  border: 3rpx solid #1b1026;
+  border-radius: 18rpx;
+}
+
+.comment-input {
+  width: 100%;
+  min-height: 128rpx;
+  padding: 0;
+  color: #1b1026;
+  font-size: 27rpx;
+  line-height: 38rpx;
+  background: transparent;
+}
+
+.comment-submit {
+  width: 156rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  margin: 14rpx 0 0 auto;
+  font-size: 26rpx;
+}
+
+.comment-list {
+  margin-top: 20rpx;
+}
+
+.comment-item {
+  display: flex;
+  gap: 14rpx;
+  padding: 18rpx 0;
+  border-top: 3rpx solid rgba(27, 16, 38, 0.12);
+}
+
+.comment-avatar {
+  flex: 0 0 auto;
+  width: 58rpx;
+  height: 58rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fffef6;
+  background: #7c3aed;
+  border: 3rpx solid #1b1026;
+  border-radius: 50%;
+  font-size: 24rpx;
+  font-weight: 900;
+  box-shadow: 4rpx 4rpx 0 #1b1026;
+}
+
+.comment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.comment-user {
+  color: #1b1026;
+  font-size: 25rpx;
+  font-weight: 900;
+}
+
+.comment-time {
+  color: #8a7a4a;
+  font-size: 22rpx;
+}
+
+.comment-content {
+  margin-top: 8rpx;
+  color: #1b1026;
+  font-size: 27rpx;
+  line-height: 40rpx;
+  word-break: break-word;
+}
+
+.comments-empty {
+  margin-top: 18rpx;
+  padding: 36rpx 0;
+  color: #8a7a4a;
+  text-align: center;
+  font-size: 25rpx;
+  font-weight: 700;
+  border-top: 3rpx dashed rgba(27, 16, 38, 0.2);
+}
+
+.loading {
+  padding: 80rpx 0;
+  color: #9ca3af;
+  text-align: center;
+}

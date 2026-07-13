@@ -1,0 +1,38 @@
+<view class="page detail-page lost-detail-page">
+  <view wx:if="{{item}}">
+    <swiper wx:if="{{images.length}}" class="gallery" indicator-dots circular>
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image class="gallery-image" src="{{item}}" mode="aspectFill" />
+      </swiper-item>
+    </swiper>
+    <view wx:else class="gallery no-image">{{item.typeText}}</view>
+
+    <view class="info surface">
+      <view class="lost-detail-head">
+        <view class="lost-type {{item.typeClass}}">{{item.typeText}}</view>
+        <view class="status">浏览 {{item.viewText}}</view>
+      </view>
+      <view class="title">{{item.title}}</view>
+      <view class="meta">
+        <view>地点：{{item.locationText}}</view>
+        <view>时间：{{item.timeText}}</view>
+        <view>联系：{{item.contactText}}</view>
+      </view>
+      <view class="desc">{{item.descText}}</view>
+    </view>
+
+    <view class="seller surface">
+      <view class="avatar">{{userInitial}}</view>
+      <view>
+        <view class="seller-name">{{item.userNameText}}</view>
+        <view class="seller-campus">{{item.userCampusText}}</view>
+      </view>
+    </view>
+
+    <view class="actions">
+      <button wx:if="{{canClose}}" class="ghost-btn action-btn" loading="{{operating}}" bindtap="closeItem">关闭信息</button>
+      <button class="primary-btn action-btn" bindtap="contactPublisher">联系发布人</button>
+    </view>
+  </view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

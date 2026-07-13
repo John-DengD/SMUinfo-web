@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: smu-deal
+  datasource:
+    # Defaults are suitable for local development; use environment variables in deployments.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/smu_deal?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8&allowPublicKeyRetrieval=true}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:15}
+      minimum-idle: ${DB_POOL_MIN_IDLE:3}
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:5MB}
+      max-request-size: ${MAX_REQUEST_SIZE:15MB}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: ${MYBATIS_LOG_IMPL:org.apache.ibatis.logging.nologging.NoLoggingImpl}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:local-development-only-secret-key-change-before-deploy-123456}
+    expire-hours: 168
+  upload:
+    # 商品图片保存到本地文件系统，DB 只保存 URL
+    # 生产部署可改成挂载盘或 MinIO/OSS
+    dir: ${UPLOAD_DIR:./uploads}
+    url-prefix: /uploads
+  cleanup:
+    enabled: ${CLEANUP_ENABLED:true}
+    min-disk-free-ratio: ${CLEANUP_MIN_DISK_FREE_RATIO:0.15}
+    max-heap-used-ratio: ${CLEANUP_MAX_HEAP_USED_RATIO:0.90}
+    batch-size: ${CLEANUP_BATCH_SIZE:100}
+    min-age-days: ${CLEANUP_MIN_AGE_DAYS:7}
+    initial-delay-ms: ${CLEANUP_INITIAL_DELAY_MS:60000}
+    check-interval-ms: ${CLEANUP_CHECK_INTERVAL_MS:300000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}

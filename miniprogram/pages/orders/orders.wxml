@@ -1,0 +1,31 @@
+<view class="page orders-page">
+  <view class="role-tabs surface">
+    <view class="role-tab {{buyerTabClass}}" bindtap="switchRole" data-role="buyer">我申请的</view>
+    <view class="role-tab {{sellerTabClass}}" bindtap="switchRole" data-role="seller">待我确认</view>
+  </view>
+
+  <view wx:if="{{orders.length}}" class="order-list">
+    <view wx:for="{{orders}}" wx:key="id" class="order-card surface">
+      <view class="order-main" bindtap="goDetail" data-id="{{item.productId}}">
+        <image wx:if="{{item.productCover}}" class="order-cover" mode="aspectFill" src="{{item.coverUrl}}" />
+        <view wx:else class="order-cover order-placeholder">图</view>
+        <view class="order-info">
+          <view class="order-title">{{item.productTitle}}</view>
+          <view class="order-price">¥{{item.priceText}}</view>
+          <view class="order-meta">对方：{{item.peerNameText}}</view>
+          <view class="order-meta">地点：{{item.meetLocationText}}</view>
+          <view class="order-status {{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+      </view>
+      <view class="order-actions">
+        <button wx:if="{{item.canConfirm}}" class="mini-action confirm" catchtap="operate" data-id="{{item.id}}" data-action="confirm" loading="{{operatingId == item.id}}">确认预约</button>
+        <button wx:if="{{item.canFinish}}" class="mini-action finish" catchtap="operate" data-id="{{item.id}}" data-action="finish" loading="{{operatingId == item.id}}">完成交易</button>
+        <button wx:if="{{item.canCancel}}" class="mini-action cancel" catchtap="operate" data-id="{{item.id}}" data-action="cancel" loading="{{operatingId == item.id}}">取消</button>
+        <button class="mini-action contact" catchtap="contact" data-index="{{index}}">私信</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{emptyVisible}}" class="empty">暂时没有预约记录</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

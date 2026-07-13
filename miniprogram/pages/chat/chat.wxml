@@ -1,0 +1,28 @@
+<view class="page chat-page">
+  <view class="chat-head surface">
+    <view class="peer-row">
+      <view class="peer-avatar">{{peerAvatar}}</view>
+      <view class="peer-main">
+        <view class="peer-name">{{peerName}}</view>
+        <view class="peer-sub">{{productRefText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="chat-body surface" scroll-y scroll-into-view="{{scrollIntoView}}">
+    <view wx:if="{{messages.length}}">
+      <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}" class="message-row {{item.selfClass}}">
+        <view class="message-bubble">{{item.content}}</view>
+        <view class="message-time">{{item.timeText}}</view>
+      </view>
+    </view>
+    <view wx:else class="chat-empty">还没有私信，发第一句吧</view>
+  </scroll-view>
+
+  <view class="chat-compose surface">
+    <textarea class="chat-input" maxlength="500" value="{{content}}" placeholder="输入私信..." bindinput="onInput" />
+    <button class="primary-btn send-btn" loading="{{sending}}" bindtap="send">发送</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

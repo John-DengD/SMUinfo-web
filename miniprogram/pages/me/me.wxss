@@ -1,0 +1,119 @@
+.me-page {
+  padding-bottom: 170rpx;
+}
+
+.guest {
+  padding: 42rpx 30rpx;
+}
+
+.guest-title {
+  color: #1b1026;
+  font-size: 38rpx;
+  font-weight: 900;
+}
+
+.guest-sub {
+  margin: 12rpx 0 30rpx;
+  color: #7a3414;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.profile {
+  display: flex;
+  gap: 22rpx;
+  align-items: center;
+  padding: 30rpx;
+}
+
+.avatar {
+  width: 108rpx;
+  height: 108rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, #ff3158, #7c3aed);
+  border: 4rpx solid #1b1026;
+  border-radius: 50%;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.profile-main {
+  min-width: 0;
+}
+
+.name {
+  color: #1b1026;
+  font-size: 36rpx;
+  font-weight: 900;
+}
+
+.student,
+.campus {
+  margin-top: 8rpx;
+  color: #6d5b2f;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.menu {
+  margin-top: 22rpx;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 26rpx 28rpx;
+  border-bottom: 3rpx solid #1b1026;
+}
+
+.menu-item:last-child {
+  border-bottom: 0;
+}
+
+.admin-item {
+  background: rgba(255, 210, 63, 0.2);
+}
+
+.menu-title {
+  color: #1b1026;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.menu-title.danger {
+  color: #d21f3c;
+}
+
+.badge {
+  display: inline-flex;
+  min-width: 36rpx;
+  height: 36rpx;
+  margin-left: 10rpx;
+  padding: 0 10rpx;
+  align-items: center;
+  justify-content: center;
+  color: #fffef6;
+  background: #d21f3c;
+  border: 3rpx solid #1b1026;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  box-shadow: 3rpx 3rpx 0 #1b1026;
+}
+
+.menu-sub {
+  margin-top: 6rpx;
+  color: #7a3414;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.arrow {
+  color: #1b1026;
+  font-size: 48rpx;
+}

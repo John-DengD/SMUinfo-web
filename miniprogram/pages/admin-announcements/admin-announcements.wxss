@@ -1,0 +1,206 @@
+@import "../admin-users/admin-users.wxss";
+
+.announcement-admin-page {
+  padding-bottom: 70rpx;
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 18rpx;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.admin-heading {
+  color: #1b1026;
+  font-size: 36rpx;
+  font-weight: 900;
+}
+
+.admin-sub {
+  margin-top: 8rpx;
+  color: #7a3414;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.publish-btn {
+  width: 132rpx;
+}
+
+.announcement-card {
+  align-items: stretch;
+}
+
+.announcement-card-head {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  padding: 8rpx 14rpx;
+  color: #1b1026;
+  border: 3rpx solid #1b1026;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.status-pill.active {
+  background: #8ff3ff;
+}
+
+.status-pill.inactive {
+  background: #e7e5e4;
+}
+
+.announcement-content {
+  margin-top: 12rpx;
+  color: #37251f;
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.55;
+  word-break: break-all;
+}
+
+.announcement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.announcement-actions .mini-action {
+  width: 118rpx;
+}
+
+.mini-action.edit {
+  color: #1b1026;
+  background: #ffd23f;
+}
+
+.mini-action.delete {
+  background: #d21f3c;
+}
+
+.form-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(27, 16, 38, 0.45);
+}
+
+.form-panel {
+  width: 100%;
+  max-height: 86vh;
+  box-sizing: border-box;
+  padding: 28rpx;
+  overflow-y: auto;
+  background: #fff7d6;
+  border: 5rpx solid #1b1026;
+  border-bottom: 0;
+  border-radius: 28rpx 28rpx 0 0;
+  box-shadow: 0 -8rpx 0 rgba(27, 16, 38, 0.18);
+}
+
+.form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.form-title {
+  color: #1b1026;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.form-close {
+  width: 58rpx;
+  height: 58rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1b1026;
+  background: #fffef6;
+  border: 4rpx solid #1b1026;
+  border-radius: 50%;
+  font-size: 36rpx;
+  font-weight: 900;
+  line-height: 58rpx;
+}
+
+.form-field {
+  margin-bottom: 22rpx;
+}
+
+.form-label {
+  color: #1b1026;
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.form-tip {
+  margin-top: 6rpx;
+  color: #7a3414;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10rpx;
+  padding: 0 20rpx;
+  color: #1b1026;
+  background: #fffef6;
+  border: 4rpx solid #1b1026;
+  border-radius: 18rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  box-shadow: 5rpx 5rpx 0 #1b1026;
+}
+
+.form-input {
+  height: 78rpx;
+}
+
+.form-textarea {
+  min-height: 210rpx;
+  padding-top: 18rpx;
+  line-height: 1.45;
+}
+
+.form-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 28rpx;
+}
+
+.primary-submit {
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  margin: 0;
+  color: #fffef6;
+  background: #ff3158;
+  border: 4rpx solid #1b1026;
+  border-radius: 18rpx;
+  font-size: 30rpx;
+  font-weight: 900;
+  box-shadow: 6rpx 6rpx 0 #1b1026;
+}
+
+.primary-submit::after {
+  border: 0;
+}

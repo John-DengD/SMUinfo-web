@@ -1,0 +1,121 @@
+.messages-page {
+  padding-bottom: 40rpx;
+}
+
+.page-head {
+  padding: 28rpx;
+}
+
+.page-title {
+  color: #1b1026;
+  font-size: 38rpx;
+  font-weight: 900;
+}
+
+.page-sub {
+  margin-top: 8rpx;
+  color: #7a3414;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.conversation-list {
+  margin-top: 22rpx;
+  overflow: hidden;
+}
+
+.conversation-item {
+  position: relative;
+  display: flex;
+  gap: 18rpx;
+  padding: 24rpx;
+  border-bottom: 3rpx solid #1b1026;
+}
+
+.conversation-item:last-child {
+  border-bottom: 0;
+}
+
+.conv-avatar {
+  flex: 0 0 auto;
+  width: 76rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fffef6;
+  background: linear-gradient(135deg, #ff3158, #7c3aed);
+  border: 4rpx solid #1b1026;
+  border-radius: 50%;
+  font-size: 30rpx;
+  font-weight: 900;
+  box-shadow: 5rpx 5rpx 0 #1b1026;
+}
+
+.conv-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.conv-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.conv-name {
+  color: #1b1026;
+  font-size: 29rpx;
+  font-weight: 900;
+}
+
+.conv-time {
+  flex: 0 0 auto;
+  color: #8a7a4a;
+  font-size: 22rpx;
+}
+
+.conv-last {
+  margin-top: 8rpx;
+  color: #1b1026;
+  font-size: 26rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-product {
+  margin-top: 8rpx;
+  color: #7a3414;
+  font-size: 23rpx;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-badge {
+  position: absolute;
+  right: 22rpx;
+  top: 62rpx;
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fffef6;
+  background: #d21f3c;
+  border: 3rpx solid #1b1026;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+  box-shadow: 3rpx 3rpx 0 #1b1026;
+}
+
+.loading {
+  padding: 24rpx;
+  color: #9ca3af;
+  text-align: center;
+}

@@ -1,0 +1,93 @@
+const { request, requireLogin, getUser } = require('../../utils/api')
+
+Page({
+  data: {
+    keyword: '',
+    users: [],
+    page: 1,
+    size: 20,
+    total: 0,
+    loading: false,
+    emptyVisible: false,
+    operatingId: ''
+  },
+
+  onShow() {
+    if (!requireLogin('/pages/admin-users/admin-users', { replace: true })) return
+    const user = getUser()
+    if (!user || user.role !== 'ADMIN') {
+      wx.showToast({ title: '仅管理员可访问', icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 400)
+      return
+    }
+    this.load(true)
+  },
+
+  onInput(e) {
+    this.setData({ keyword: e.detail.value })
+  },
+
+  onSearch() {
+    this.load(true)
+  },
+
+  async load(reset) {
+    if (reset) this.setData({ page: 1 })
+    this.setData({ loading: true })
+    try {
+      const params = {
+        page: this.data.page,
+        size: this.data.size
+      }
+      const keyword = this.data.keyword.trim()
+      if (keyword) params.keyword = keyword
+      const data = await request({ url: '/api/admin/users', auth: true, data: params })
+      const records = (data.records || []).map(item => ({
+        ...item,
+        collegeText: item.college || '未填写',
+        campusText: item.campus || '未填写',
+        statusText: item.status === 'DISABLED' ? '已禁用' : '正常',
+        actionText: item.status === 'DISABLED' ? '启用' : '禁用',
+        actionStatus: item.status === 'DISABLED' ? 'ACTIVE' : 'DISABLED',
+        actionClass: item.status === 'DISABLED' ? 'restore' : 'offline'
+      }))
+      const users = reset ? records : this.data.users.concat(records)
+      this.setData({
+        users,
+        total: data.total || 0,
+        page: this.data.page + 1,
+        emptyVisible: users.length === 0
+      })
+    } finally {
+      this.setData({ loading: false })
+    }
+  },
+
+  onReachBottom() {
+    if (!this.data.loading && this.data.users.length < this.data.total) this.load(false)
+  },
+
+  changeStatus(e) {
+    const { id, status, name } = e.currentTarget.dataset
+    wx.showModal({
+      title: '用户状态',
+      content: `确认${status === 'DISABLED' ? '禁用' : '启用'} ${name || '该用户'}？`,
+      success: async (res) => {
+        if (!res.confirm) return
+        this.setData({ operatingId: id })
+        try {
+          await request({
+            url: `/api/admin/users/${id}/status`,
+            method: 'PUT',
+            auth: true,
+            data: { status }
+          })
+          wx.showToast({ title: '已更新', icon: 'success' })
+          this.load(true)
+        } finally {
+          this.setData({ operatingId: '' })
+        }
+      }
+    })
+  }
+})

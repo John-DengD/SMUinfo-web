@@ -1,0 +1,38 @@
+<view class="page lost-found-page">
+  <view class="lost-head surface">
+    <view>
+      <view class="page-title">失物招领</view>
+      <view class="page-sub">寻物和招领集中在这里，方便同学互相找到</view>
+    </view>
+    <button class="search-btn publish-btn" bindtap="goPublish">发布</button>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" value="{{keyword}}" placeholder="搜索物品 / 地点 / 描述" confirm-type="search" bindinput="onKeywordInput" bindconfirm="onSearch" />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+  </view>
+
+  <view class="type-tabs surface">
+    <view class="type-tab {{allClass}}" bindtap="selectType" data-type="">全部</view>
+    <view class="type-tab {{lostClass}}" bindtap="selectType" data-type="LOST">我丢了</view>
+    <view class="type-tab {{foundClass}}" bindtap="selectType" data-type="FOUND">我捡到</view>
+  </view>
+
+  <view wx:if="{{items.length}}" class="lost-list">
+    <view wx:for="{{items}}" wx:key="id" class="lost-card surface" bindtap="goDetail" data-id="{{item.id}}">
+      <image wx:if="{{item.cover}}" class="lost-cover" mode="aspectFill" src="{{item.coverUrl}}" />
+      <view wx:else class="lost-cover lost-placeholder">{{item.typeText}}</view>
+      <view class="lost-body">
+        <view class="lost-card-head">
+          <view class="lost-type {{item.typeClass}}">{{item.typeText}}</view>
+          <view class="lost-time">{{item.metaText}}</view>
+        </view>
+        <view class="lost-title">{{item.title}}</view>
+        <view class="lost-desc">{{item.descText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{emptyVisible}}" class="empty">暂时没有失物招领信息</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

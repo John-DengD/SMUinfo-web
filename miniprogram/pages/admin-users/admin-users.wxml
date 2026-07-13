@@ -1,0 +1,21 @@
+<view class="page admin-page">
+  <view class="search-row">
+    <input class="search-input" value="{{keyword}}" placeholder="搜索姓名 / 学号 / 手机" confirm-type="search" bindinput="onInput" bindconfirm="onSearch" />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+  </view>
+
+  <view wx:if="{{users.length}}" class="admin-list">
+    <view wx:for="{{users}}" wx:key="id" class="admin-card surface">
+      <view class="admin-card-main">
+        <view class="admin-title">{{item.name}}</view>
+        <view class="admin-meta">学号：{{item.studentNo}}</view>
+        <view class="admin-meta">学院：{{item.collegeText}} · {{item.campusText}}</view>
+        <view class="admin-meta">角色：{{item.role}} · 状态：{{item.statusText}}</view>
+      </view>
+      <button class="mini-action {{item.actionClass}}" catchtap="changeStatus" data-id="{{item.id}}" data-status="{{item.actionStatus}}" data-name="{{item.name}}" loading="{{operatingId == item.id}}">{{item.actionText}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{emptyVisible}}" class="empty">没有找到用户</view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

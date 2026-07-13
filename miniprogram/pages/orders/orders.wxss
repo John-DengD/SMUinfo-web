@@ -1,0 +1,154 @@
+.orders-page {
+  padding-bottom: 40rpx;
+}
+
+.role-tabs {
+  display: flex;
+  gap: 14rpx;
+  padding: 14rpx;
+}
+
+.role-tab {
+  flex: 1;
+  height: 70rpx;
+  line-height: 70rpx;
+  text-align: center;
+  color: #1b1026;
+  background: #fff7d6;
+  border: 3rpx solid #1b1026;
+  border-radius: 18rpx;
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.role-tab.active {
+  color: #fffef6;
+  background: #7c3aed;
+  box-shadow: 4rpx 4rpx 0 #1b1026;
+}
+
+.order-list {
+  margin-top: 22rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.order-card {
+  padding: 20rpx;
+}
+
+.order-main {
+  display: flex;
+  gap: 18rpx;
+}
+
+.order-cover {
+  flex: 0 0 auto;
+  width: 150rpx;
+  height: 150rpx;
+  background: linear-gradient(135deg, #ffe066, #8ff3ff);
+  border: 3rpx solid #1b1026;
+  border-radius: 18rpx;
+}
+
+.order-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7a3414;
+  font-weight: 900;
+}
+
+.order-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-title {
+  color: #1b1026;
+  font-size: 29rpx;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-price {
+  margin-top: 8rpx;
+  color: #d21f3c;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.order-meta {
+  margin-top: 6rpx;
+  color: #6d5b2f;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.order-status {
+  display: inline-flex;
+  margin-top: 10rpx;
+  padding: 7rpx 14rpx;
+  color: #1b1026;
+  background: #ffd23f;
+  border: 3rpx solid #1b1026;
+  border-radius: 999rpx;
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+.order-status.reserved,
+.order-status.done {
+  color: #fffef6;
+  background: #7c3aed;
+}
+
+.order-status.cancelled {
+  color: #6d5b2f;
+  background: #f4ead0;
+}
+
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.mini-action {
+  flex: 1 1 150rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  margin: 0;
+  color: #1b1026;
+  background: #8ff3ff;
+  border: 3rpx solid #1b1026;
+  border-radius: 14rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+  box-shadow: 4rpx 4rpx 0 #1b1026;
+}
+
+.mini-action::after {
+  border: 0;
+}
+
+.mini-action.confirm,
+.mini-action.finish {
+  color: #fffef6;
+  background: #7c3aed;
+}
+
+.mini-action.cancel {
+  color: #fffef6;
+  background: #d21f3c;
+}
+
+.loading {
+  padding: 24rpx;
+  color: #9ca3af;
+  text-align: center;
+}

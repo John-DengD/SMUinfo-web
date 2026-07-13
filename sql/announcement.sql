@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS announcement (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(80) NOT NULL,
+    content VARCHAR(500) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_by BIGINT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_announcement_status_created (status, created_at, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

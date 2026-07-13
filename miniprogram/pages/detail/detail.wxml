@@ -1,0 +1,67 @@
+<view class="page detail-page">
+  <view wx:if="{{product}}">
+    <swiper wx:if="{{images.length}}" class="gallery" indicator-dots circular>
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image class="gallery-image" src="{{item}}" mode="aspectFill" />
+      </swiper-item>
+    </swiper>
+    <view wx:else class="gallery no-image">暂无图片</view>
+
+    <view class="info surface">
+      <view class="title">{{product.title}}</view>
+      <view class="price-row">
+        <text class="price">¥{{product.priceText}}</text>
+        <text wx:if="{{product.originalPrice}}" class="origin">原价 ¥{{product.originalPrice}}</text>
+        <text class="status">{{statusText}}</text>
+      </view>
+      <view class="meta">
+        <view>成色：{{product.conditionText}}</view>
+        <view>地点：{{product.locationText}}</view>
+        <view>分类：{{product.categoryText}}</view>
+        <view>浏览：{{product.viewText}}</view>
+      </view>
+      <view class="desc">{{product.descText}}</view>
+    </view>
+
+    <view class="seller surface">
+      <view class="avatar">{{sellerInitial}}</view>
+      <view>
+        <view class="seller-name">{{product.sellerNameText}}</view>
+        <view class="seller-campus">{{product.sellerCampusText}}</view>
+      </view>
+    </view>
+
+    <view class="actions">
+      <button class="ghost-btn action-btn" bindtap="toggleFavorite">{{product.favoriteText}}</button>
+      <button class="primary-btn action-btn" bindtap="contactSeller">联系卖家</button>
+    </view>
+    <button wx:if="{{product.canReserve}}" class="reserve-btn" loading="{{wantLoading}}" bindtap="reserveProduct">我想要，提交预约</button>
+
+    <view class="comments surface">
+      <view class="comments-head">
+        <view class="comments-title">留言区</view>
+        <view class="comments-count">{{comments.length}} 条</view>
+      </view>
+
+      <view class="comment-compose">
+        <textarea class="comment-input" maxlength="300" value="{{commentContent}}" placeholder="问问成色、配件、取货时间..." bindinput="onCommentInput" />
+        <button class="primary-btn comment-submit" loading="{{commentLoading}}" bindtap="submitComment">留言</button>
+      </view>
+
+      <view wx:if="{{comments.length}}" class="comment-list">
+        <view wx:for="{{comments}}" wx:key="id" class="comment-item">
+          <view class="comment-avatar">{{item.avatarText}}</view>
+          <view class="comment-main">
+            <view class="comment-meta">
+              <text class="comment-user">{{item.displayName}}</text>
+              <text class="comment-time">{{item.timeText}}</text>
+            </view>
+            <view class="comment-content">{{item.content}}</view>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{commentsEmpty}}" class="comments-empty">还没有留言，来坐第一个沙发</view>
+    </view>
+  </view>
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>
