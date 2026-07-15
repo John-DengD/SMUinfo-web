@@ -67,6 +67,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { track } from '@hellyeah/x-ray'
 import { feedbackApi } from '../api'
 
 const formRef = ref(null)
@@ -100,6 +101,7 @@ const submit = async () => {
     loading.value = true
     try {
       await feedbackApi.create(form)
+      track('feedback_submitted', { category: form.category })
       ElMessage.success('感谢你的反馈！我们已经收到啦')
       form.content = ''
       form.contact = ''

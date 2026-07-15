@@ -63,6 +63,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { track, cv } from '@hellyeah/x-ray'
 import { categoryApi, productApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -83,7 +84,9 @@ const page = ref(1)
 const size = ref(12)
 const loading = ref(false)
 
-const search = async () => {
+const search = async (emitEvent = true) => {
+  const q = (form.keyword || '').trim()
+  if (emitEvent && q) track(cv.search, { query: q })
   page.value = 1
   await load()
 }
@@ -121,7 +124,7 @@ onMounted(async () => {
 
 watch(() => route.query.keyword, (v) => {
   form.keyword = v || ''
-  search()
+  search(false)
 })
 </script>
 
