@@ -73,6 +73,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { track, cv } from '@hellyeah/x-ray'
 import { productApi, favoriteApi, orderApi, reportApi } from '../api'
 import { useUserStore } from '../stores/user'
 
@@ -104,6 +105,11 @@ const load = async () => {
   try {
     const { data } = await productApi.detail(route.params.id)
     product.value = data
+    track(cv.viewContent, {
+      product_id: data.id,
+      category: data.categoryName,
+      price: Number(data.price)
+    })
   } finally {
     loading.value = false
   }
@@ -126,6 +132,10 @@ const toggleFavorite = async () => {
   } else {
     await favoriteApi.add(product.value.id)
     product.value.favorited = true
+    track('product_favorited', {
+      product_id: product.value.id,
+      category: product.value.categoryName
+    })
     ElMessage.success('收藏成功')
   }
 }
@@ -136,6 +146,10 @@ const contactSeller = () => {
     ElMessage.info('这是你自己发布的商品')
     return
   }
+  track('seller_contacted', {
+    product_id: product.value.id,
+    seller_id: product.value.sellerId
+  })
   router.push({ path: `/chat/${product.value.sellerId}`, query: { productId: product.value.id } })
 }
 
@@ -146,6 +160,10 @@ const submitWant = async () => {
       productId: product.value.id,
       meetLocation: wantForm.value.meetLocation,
       remark: wantForm.value.remark
+    })
+    track('order_created', {
+      product_id: product.value.id,
+      price: Number(product.value.price)
     })
     wantDialog.value = false
     ElMessage.success('交易请求已发起，可在「我的交易」查看进度')
