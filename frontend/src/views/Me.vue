@@ -29,7 +29,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { identify } from '@hellyeah/x-ray'
 import { authApi } from '../api'
 import { useUserStore } from '../stores/user'
 
@@ -60,7 +59,6 @@ const save = async () => {
   await formRef.value.validate(async (valid) => {
     if (!valid) return
     const { data } = await authApi.updateMe(form.value)
-    identify(String(data.id), { phone: data.phone || undefined })
     ElMessage.success('保存成功')
     userStore.user = data
     localStorage.setItem('user', JSON.stringify(data))
