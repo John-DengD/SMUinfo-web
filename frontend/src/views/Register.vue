@@ -49,7 +49,6 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { identify, track, cv } from '@hellyeah/x-ray'
 import { authApi } from '../api'
 
 const router = useRouter()
@@ -93,9 +92,7 @@ const submit = async () => {
     if (!valid) return
     loading.value = true
     try {
-      const { data } = await authApi.register(form)
-      identify(String(data.id), { phone: form.phone || undefined })
-      track(cv.registrationComplete, { signup_method: 'student_no' })
+      await authApi.register(form)
       ElMessage.success('注册成功，请登录')
       router.push('/login')
     } catch (e) { /* ignore */ } finally { loading.value = false }
