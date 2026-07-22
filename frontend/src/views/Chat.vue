@@ -24,6 +24,7 @@
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { track } from '@hellyeah/x-ray'
 import { messageApi } from '../api'
 import { useUserStore } from '../stores/user'
 
@@ -55,9 +56,13 @@ const load = async () => {
 const send = async () => {
   const text = content.value.trim()
   if (!text) return
+  const isFirstMessage = messages.value.length === 0
   sending.value = true
   try {
     await messageApi.send({ receiverId: peerId.value, productId: productId.value, content: text })
+    if (isFirstMessage) {
+      track('seller_contacted', { product_id: productId.value })
+    }
     content.value = ''
     await load()
   } finally { sending.value = false }

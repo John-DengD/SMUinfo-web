@@ -59,6 +59,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import { track } from '@hellyeah/x-ray'
 import { categoryApi, productApi, uploadApi } from '../api'
 
 const route = useRoute()
@@ -113,7 +114,12 @@ const submit = async () => {
         await productApi.update(editId.value, form)
         ElMessage.success('保存成功')
       } else {
-        await productApi.create(form)
+        const { data } = await productApi.create(form)
+        track('product_published', {
+          product_id: data.id,
+          category_id: form.categoryId,
+          price: Number(form.price)
+        })
         ElMessage.success('发布成功')
       }
       router.push('/my/products')

@@ -68,6 +68,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, Plus, ChatDotRound, Promotion } from '@element-plus/icons-vue'
+import { track, cv } from '@hellyeah/x-ray'
 import { useUserStore } from '../stores/user'
 import { messageApi } from '../api'
 
@@ -78,6 +79,8 @@ const keyword = ref('')
 const unread = ref(0)
 
 const goSearch = () => {
+  const q = (keyword.value || '').trim()
+  if (q) track(cv.search, { query: q })
   router.push({ path: '/search', query: { keyword: keyword.value } })
 }
 

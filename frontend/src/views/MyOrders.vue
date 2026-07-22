@@ -45,6 +45,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { track } from '@hellyeah/x-ray'
 import { orderApi } from '../api'
 
 const role = ref('buyer')
@@ -65,8 +66,22 @@ const statusType = (s) => ({ PENDING: 'warning', RESERVED: 'primary', COMPLETED:
 const op = async (row, action) => {
   await ElMessageBox.confirm('确认要执行该操作吗？', '提示', { type: 'warning' }).catch(() => null).then(async (ok) => {
     if (!ok) return
-    if (action === 'confirm') await orderApi.confirm(row.id)
-    if (action === 'finish') await orderApi.finish(row.id)
+    if (action === 'confirm') {
+      await orderApi.confirm(row.id)
+      track('trade_reserved', {
+        order_id: row.id,
+        product_id: row.productId,
+        price: Number(row.productPrice)
+      })
+    }
+    if (action === 'finish') {
+      await orderApi.finish(row.id)
+      track('trade_completed', {
+        order_id: row.id,
+        product_id: row.productId,
+        price: Number(row.productPrice)
+      })
+    }
     if (action === 'cancel') await orderApi.cancel(row.id)
     ElMessage.success('操作成功')
     await load()

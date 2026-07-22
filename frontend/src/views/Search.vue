@@ -36,7 +36,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="search">搜索</el-button>
+          <el-button type="primary" @click="onSearchSubmit">搜索</el-button>
           <el-button @click="reset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -63,6 +63,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { track, cv } from '@hellyeah/x-ray'
 import { categoryApi, productApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -86,6 +87,11 @@ const loading = ref(false)
 const search = async () => {
   page.value = 1
   await load()
+}
+const onSearchSubmit = () => {
+  const q = (form.keyword || '').trim()
+  if (q) track(cv.search, { query: q })
+  search()
 }
 const reset = () => {
   form.keyword = ''
