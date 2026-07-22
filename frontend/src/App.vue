@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <Analytics :website-id="TRACKER_ID" :env="trackerEnv" />
+    <Analytics :website-id="TRACKER_ID" :env="trackerEnv" host-url="https://xray-staging.hellyeahai.com" />
     <AppHeader />
     <main class="layout-main">
       <router-view />
