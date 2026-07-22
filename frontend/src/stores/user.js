@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { identify } from '@hellyeah/x-ray'
 import { authApi } from '../api'
 
 export const useUserStore = defineStore('user', {
@@ -17,6 +18,7 @@ export const useUserStore = defineStore('user', {
       this.user = data.user
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
+      if (data.user?.id != null) identify(String(data.user.id))
       return data
     },
     async refreshMe() {
@@ -24,6 +26,7 @@ export const useUserStore = defineStore('user', {
         const { data } = await authApi.me()
         this.user = data
         localStorage.setItem('user', JSON.stringify(data))
+        if (data?.id != null) identify(String(data.id))
       } catch (e) {
         this.logout()
       }

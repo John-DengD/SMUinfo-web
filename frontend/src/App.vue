@@ -1,5 +1,6 @@
 <template>
   <div class="layout">
+    <Analytics :website-id="TRACKER_ID" :env="trackerEnv" />
     <AppHeader />
     <main class="layout-main">
       <router-view />
@@ -18,9 +19,12 @@
 
 <script setup>
 import AppHeader from './components/AppHeader.vue'
+import { Analytics } from '@hellyeah/x-ray/vue'
 import { onMounted } from 'vue'
 import { useUserStore } from './stores/user'
+import { TRACKER_ID } from './tracker'
 
+const trackerEnv = import.meta.env.VITE_TRACKER_ENV
 const userStore = useUserStore()
 onMounted(() => {
   if (userStore.isLoggedIn) {

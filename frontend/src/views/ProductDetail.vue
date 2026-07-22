@@ -73,6 +73,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { track, cv } from '@hellyeah/x-ray'
 import { productApi, favoriteApi, orderApi, reportApi } from '../api'
 import { useUserStore } from '../stores/user'
 
@@ -99,11 +100,18 @@ const canWant = computed(() => {
   return product.value.sellerId !== userStore.user.id
 })
 
-const load = async () => {
+const load = async (trackView = false) => {
   loading.value = true
   try {
     const { data } = await productApi.detail(route.params.id)
     product.value = data
+    if (trackView) {
+      track(cv.viewContent, {
+        product_id: data.id,
+        category: data.categoryName || '',
+        price: Number(data.price)
+      })
+    }
   } finally {
     loading.value = false
   }
@@ -126,6 +134,10 @@ const toggleFavorite = async () => {
   } else {
     await favoriteApi.add(product.value.id)
     product.value.favorited = true
+    track('product_favorited', {
+      product_id: product.value.id,
+      category: product.value.categoryName || ''
+    })
     ElMessage.success('收藏成功')
   }
 }
@@ -147,6 +159,17 @@ const submitWant = async () => {
       meetLocation: wantForm.value.meetLocation,
       remark: wantForm.value.remark
     })
+    track(cv.beginCheckout, {
+      product_id: product.value.id,
+      category: product.value.categoryName || '',
+      revenue: Number(product.value.price),
+      currency: 'CNY'
+    })
+    track('trade_requested', {
+      product_id: product.value.id,
+      category: product.value.categoryName || '',
+      price: Number(product.value.price)
+    })
     wantDialog.value = false
     ElMessage.success('交易请求已发起，可在「我的交易」查看进度')
     await load()
@@ -167,7 +190,7 @@ const submitReport = async () => {
   } catch (e) { /* ignore */ }
 }
 
-onMounted(load)
+onMounted(() => load(true))
 </script>
 
 <style scoped>
