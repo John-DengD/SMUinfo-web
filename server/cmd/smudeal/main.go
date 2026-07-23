@@ -7,11 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/John-DengD/smu-deal/server/internal/announcement"
 	"github.com/John-DengD/smu-deal/server/internal/auth"
+	"github.com/John-DengD/smu-deal/server/internal/category"
 	"github.com/John-DengD/smu-deal/server/internal/config"
 	"github.com/John-DengD/smu-deal/server/internal/db"
 	"github.com/John-DengD/smu-deal/server/internal/db/gen"
+	"github.com/John-DengD/smu-deal/server/internal/feedback"
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
+	"github.com/John-DengD/smu-deal/server/internal/report"
 )
 
 func main() {
@@ -41,6 +45,10 @@ func main() {
 
 	api := r.Group("/api")
 	auth.Register(api, auth.NewService(q, jwt))
+	category.Register(api, category.NewService(q))
+	report.Register(api, report.NewService(q))
+	feedback.Register(api, feedback.NewService(q))
+	announcement.Register(api, announcement.NewService(q))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
 		slog.Error("run", "err", err)
