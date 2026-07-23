@@ -42,6 +42,7 @@ func main() {
 	q := gen.New(pool)
 
 	r := gin.New()
+	r.MaxMultipartMemory = cfg.MaxFileSize + 512
 	r.Use(httpx.CORS(cfg.AllowedOrigins), httpx.AuthParse(jwt), httpx.Recovery())
 	r.Static(cfg.URLPrefix, cfg.UploadDir)
 	r.GET("/healthz", func(c *gin.Context) { c.JSON(200, httpx.OK("ok")) })

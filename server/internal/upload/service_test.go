@@ -3,6 +3,7 @@ package upload
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
@@ -165,5 +166,45 @@ func TestExtensionIsCaseInsensitive(t *testing.T) {
 	fh := makeFileHeader(t, "PHOTO.JPG", []byte("img-data"))
 	if _, err := svc.Upload(fh); err != nil {
 		t.Fatalf("uppercase .JPG should be accepted, got error: %v", err)
+	}
+}
+
+// errReader returns an error after reading `n` bytes successfully.
+type errReader struct {
+	data []byte
+	pos  int
+	fail int // fail after this many bytes
+}
+
+func (r *errReader) Read(p []byte) (int, error) {
+	if r.pos >= r.fail {
+		return 0, fmt.Errorf("simulated read error")
+	}
+	n := copy(p, r.data[r.pos:])
+	if r.pos+n > r.fail {
+		n = r.fail - r.pos
+	}
+	r.pos += n
+	if r.pos >= r.fail {
+		return n, fmt.Errorf("simulated read error")
+	}
+	return n, nil
+}
+
+// TestSaveFromReaderCleansUpPartialFileOnError verifies that saveFromReader
+// removes the partially-written destination file when io.Copy fails.
+func TestSaveFromReaderCleansUpPartialFileOnError(t *testing.T) {
+	dir := t.TempDir()
+	dest := filepath.Join(dir, "partial.jpg")
+
+	// Write 4 bytes of real data then error
+	src := &errReader{data: []byte("abcdefgh"), fail: 4}
+	err := saveFromReader(src, dest)
+	if err == nil {
+		t.Fatal("expected error from saveFromReader, got nil")
+	}
+
+	if _, statErr := os.Stat(dest); !os.IsNotExist(statErr) {
+		t.Fatal("expected partial file to be removed after write error, but it still exists")
 	}
 }

@@ -95,13 +95,27 @@ func saveFile(fh *multipart.FileHeader, dest string) error {
 		return err
 	}
 	defer src.Close()
+	return saveFromReader(src, dest)
+}
 
+// saveFromReader copies src into dest, cleaning up the partial file on error.
+// Separated from saveFile to allow unit-testing the cleanup path without a real
+// multipart.FileHeader.
+func saveFromReader(src io.Reader, dest string) error {
 	out, err := os.Create(dest)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
-	_, err = io.Copy(out, src)
-	return err
+	copyErr := func() error {
+		_, err := io.Copy(out, src)
+		return err
+	}()
+	closeErr := out.Close()
+
+	if copyErr != nil {
+		_ = os.Remove(dest) // remove partial file on write error
+		return copyErr
+	}
+	return closeErr
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/John-DengD/smu-deal/server/internal/db/gen"
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
+	"github.com/John-DengD/smu-deal/server/internal/product"
 )
 
 // stubQuerier implements Querier for unit tests without a real DB.
@@ -174,15 +175,16 @@ func TestMyFavoritesReturnsFavoritedTrue(t *testing.T) {
 	if page.Total != 1 {
 		t.Fatalf("expected total 1, got %d", page.Total)
 	}
-	// Records is []product.Item; check favorited field via type assertion
-	records, ok := page.Records.([]interface{})
+	records, ok := page.Records.([]product.Item)
 	if !ok {
-		// The slice is typed as product.Item; access via the interface{}
-		// We only need to confirm the call succeeded and total is correct.
-		// Deeper field inspection is done in e2e verification.
-		return
+		t.Fatalf("expected Records to be []product.Item, got %T", page.Records)
 	}
-	_ = records
+	if len(records) == 0 {
+		t.Fatal("expected at least one record")
+	}
+	if !records[0].Favorited {
+		t.Fatalf("expected Favorited == true, got false")
+	}
 }
 
 func TestMyFavoritesSkipsDeletedProducts(t *testing.T) {

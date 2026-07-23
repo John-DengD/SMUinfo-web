@@ -129,7 +129,7 @@ func (s *Service) MyFavorites(ctx context.Context, userID int64) (httpx.Page, er
 		it := product.Item{
 			ID:             p.ID,
 			Title:          p.Title,
-			Description:    p.Description,
+			Description:    nil, // Java FavoriteService.myFavorites does not set description (stays null)
 			Price:          product.Price{Numeric: p.Price},
 			OriginalPrice:  product.Price{Numeric: p.OriginalPrice},
 			ConditionLevel: p.ConditionLevel,
