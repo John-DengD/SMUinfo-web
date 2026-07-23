@@ -21,6 +21,7 @@ import (
 	"github.com/John-DengD/smu-deal/server/internal/order"
 	"github.com/John-DengD/smu-deal/server/internal/product"
 	"github.com/John-DengD/smu-deal/server/internal/report"
+	"github.com/John-DengD/smu-deal/server/internal/transit"
 	"github.com/John-DengD/smu-deal/server/internal/upload"
 )
 
@@ -61,6 +62,7 @@ func main() {
 	order.Register(api, order.NewService(q, pool))
 	message.Register(api, message.NewService(q))
 	lostfound.Register(api, lostfound.NewService(q, pool))
+	transit.Register(api, transit.NewService(q))
 	upload.Register(api, upload.NewService(cfg.UploadDir, cfg.URLPrefix, cfg.MaxFileSize))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
