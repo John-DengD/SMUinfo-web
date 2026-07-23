@@ -784,9 +784,11 @@ func TestValidateName(t *testing.T){
 
 ## Task 21: 端到端兼容性集成测试
 
-**Files:** Create `server/internal/e2e/e2e_test.go`（用 testcontainers-go 起临时 PG）
+**Files:** Create `server/internal/e2e/e2e_test.go`（连本机 PostgreSQL 测试库，**不用 Docker/testcontainers** —— 本机无 Docker daemon）
 
-- [ ] **Step 1:** 起容器 → 跑 migrations → 起 gin engine（httptest.Server）。
+> 测试库连接串：`postgres://smu_deal:password@localhost:5432/smu_deal_test?sslmode=disable`，可用环境变量 `TEST_DB_URL` 覆盖。测试开始时对该库跑一次 migrations（先 down 再 up，或 drop+recreate schema 保证干净）；测试结束不必销毁库。
+
+- [ ] **Step 1:** 连接 `TEST_DB_URL`（默认上面的 smu_deal_test）→ 清库并跑 migrations → 起 gin engine（httptest.Server）。
 - [ ] **Step 2:** 覆盖核心链路并断言信封/字段名：注册→登录→拿 token→发布商品→列表搜索→详情→收藏→下单→confirm/finish→发消息→未读数→失物发布→公告 active→举报→反馈→管理员改用户状态。
 - [ ] **Step 3:** 断言每个响应顶层为 `{"code":0,"message":"ok","data":...}`，分页为 `{"total","records"}`，关键字段名 camelCase（`studentNo/createdAt/viewCount` 等）。
 - [ ] **Step 4:** `go test ./internal/e2e/` 全绿后提交。
