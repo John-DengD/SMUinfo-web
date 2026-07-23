@@ -55,12 +55,13 @@ func CORS(origins []string) gin.HandlerFunc {
 	}
 	return func(c *gin.Context) {
 		o := c.GetHeader("Origin")
+		c.Header("Vary", "Origin")
 		if set[o] {
 			c.Header("Access-Control-Allow-Origin", o)
 			c.Header("Access-Control-Allow-Credentials", "true")
 		}
 		c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "*")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
 			return

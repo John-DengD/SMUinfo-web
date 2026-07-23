@@ -91,6 +91,9 @@ func (s *Service) Register(ctx context.Context, req RegisterReq) (UserInfo, erro
 	if pw := utf8.RuneCountInString(req.Password); pw < 6 || pw > 64 {
 		return UserInfo{}, httpx.Biz("密码长度需为 6-64 位")
 	}
+	if len(req.Password) > 72 {
+		return UserInfo{}, httpx.Biz("密码长度需为 6-64 位")
+	}
 
 	studentNo, err := validateStudentNo(req.StudentNo)
 	if err != nil {

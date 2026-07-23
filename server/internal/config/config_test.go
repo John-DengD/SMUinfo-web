@@ -1,14 +1,12 @@
 package config
 
 import (
-	"os"
 	"testing"
 )
 
 func TestLoadDefaults(t *testing.T) {
-	os.Clearenv()
-	os.Setenv("DB_URL", "postgres://x")
-	os.Setenv("JWT_SECRET", "s")
+	t.Setenv("DB_URL", "postgres://x")
+	t.Setenv("JWT_SECRET", "s")
 	c := Load()
 	if c.Port != "8080" {
 		t.Fatalf("want 8080 got %s", c.Port)

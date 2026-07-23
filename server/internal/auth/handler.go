@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
@@ -19,7 +21,8 @@ func Register(api *gin.RouterGroup, svc *Service) {
 			return
 		}
 		info, err := svc.Register(c.Request.Context(), req)
-		if be, ok := err.(httpx.BizError); ok {
+		var be httpx.BizError
+		if errors.As(err, &be) {
 			httpx.Abort(c, be)
 			return
 		}
@@ -36,7 +39,8 @@ func Register(api *gin.RouterGroup, svc *Service) {
 			return
 		}
 		resp, err := svc.Login(c.Request.Context(), req)
-		if be, ok := err.(httpx.BizError); ok {
+		var be httpx.BizError
+		if errors.As(err, &be) {
 			httpx.Abort(c, be)
 			return
 		}
@@ -51,7 +55,8 @@ func Register(api *gin.RouterGroup, svc *Service) {
 	{
 		users.GET("/me", func(c *gin.Context) {
 			info, err := svc.GetMe(c.Request.Context(), httpx.RequireUserID(c))
-			if be, ok := err.(httpx.BizError); ok {
+			var be httpx.BizError
+			if errors.As(err, &be) {
 				httpx.Abort(c, be)
 				return
 			}
@@ -68,7 +73,8 @@ func Register(api *gin.RouterGroup, svc *Service) {
 				return
 			}
 			info, err := svc.UpdateMe(c.Request.Context(), httpx.RequireUserID(c), req)
-			if be, ok := err.(httpx.BizError); ok {
+			var be httpx.BizError
+			if errors.As(err, &be) {
 				httpx.Abort(c, be)
 				return
 			}

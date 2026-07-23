@@ -27,7 +27,8 @@ func (j JWT) Generate(uid int64, role string) (string, error) {
 
 func (j JWT) Parse(tok string) (int64, string, error) {
 	claims := jwt.MapClaims{}
-	_, err := jwt.ParseWithClaims(tok, claims, func(t *jwt.Token) (any, error) { return j.secret, nil })
+	_, err := jwt.ParseWithClaims(tok, claims, func(t *jwt.Token) (any, error) { return j.secret, nil },
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
 		return 0, "", err
 	}
