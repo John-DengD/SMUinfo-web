@@ -2,6 +2,8 @@ package report
 
 import (
 	"context"
+	"errors"
+	"html"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -50,20 +52,12 @@ func (s *Service) Create(ctx context.Context, reporterID int64, req CreateReq) e
 	_, err = s.q.InsertReport(ctx, gen.InsertReportParams{
 		ReporterID: reporterID,
 		ProductID:  req.ProductID,
-		Reason:     htmlEscape(reason),
+		Reason:     html.EscapeString(reason),
 		Status:     "PENDING",
 	})
 	return err
 }
 
 func isNoRows(err error) bool {
-	return err != nil && (err == pgx.ErrNoRows || strings.Contains(err.Error(), "no rows"))
-}
-
-// htmlEscape replaces &, <, > with HTML entities (mirrors Spring's HtmlUtils.htmlEscape).
-func htmlEscape(s string) string {
-	s = strings.ReplaceAll(s, "&", "&amp;")
-	s = strings.ReplaceAll(s, "<", "&lt;")
-	s = strings.ReplaceAll(s, ">", "&gt;")
-	return s
+	return errors.Is(err, pgx.ErrNoRows)
 }

@@ -2,6 +2,7 @@ package feedback
 
 import (
 	"context"
+	"html"
 	"strings"
 	"time"
 
@@ -32,13 +33,14 @@ type CreateReq struct {
 
 // Item mirrors FeedbackDTO.Item (camelCase wire contract).
 type Item struct {
-	ID         int64   `json:"id"`
-	UserID     *int64  `json:"userId"`
-	Category   string  `json:"category"`
-	Content    string  `json:"content"`
-	Contact    *string `json:"contact"`
-	Status     string  `json:"status"`
-	AdminReply *string `json:"adminReply"`
+	ID         int64      `json:"id"`
+	UserID     *int64     `json:"userId"`
+	UserName   *string    `json:"userName"`
+	Category   string     `json:"category"`
+	Content    string     `json:"content"`
+	Contact    *string    `json:"contact"`
+	Status     string     `json:"status"`
+	AdminReply *string    `json:"adminReply"`
 	CreatedAt  *time.Time `json:"createdAt"`
 }
 
@@ -76,7 +78,7 @@ func (s *Service) Create(ctx context.Context, userID int64, req CreateReq) error
 
 	var contact *string
 	if req.Contact != nil {
-		c := htmlEscape(strings.TrimSpace(*req.Contact))
+		c := html.EscapeString(strings.TrimSpace(*req.Contact))
 		if len([]rune(c)) > 64 {
 			return httpx.Biz("联系方式不能超过 64 字")
 		}
@@ -87,7 +89,7 @@ func (s *Service) Create(ctx context.Context, userID int64, req CreateReq) error
 	_, err := s.q.InsertFeedback(ctx, gen.InsertFeedbackParams{
 		UserID:   &uid,
 		Category: cat,
-		Content:  htmlEscape(content),
+		Content:  html.EscapeString(content),
 		Contact:  contact,
 		Status:   "PENDING",
 	})
@@ -106,10 +108,3 @@ func (s *Service) ListMine(ctx context.Context, userID int64) ([]Item, error) {
 	return items, nil
 }
 
-// htmlEscape replaces &, <, > with HTML entities (mirrors Spring's HtmlUtils.htmlEscape).
-func htmlEscape(s string) string {
-	s = strings.ReplaceAll(s, "&", "&amp;")
-	s = strings.ReplaceAll(s, "<", "&lt;")
-	s = strings.ReplaceAll(s, ">", "&gt;")
-	return s
-}

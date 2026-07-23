@@ -3,6 +3,7 @@ package report
 import (
 	"context"
 	"errors"
+	"html"
 	"testing"
 
 	"github.com/John-DengD/smu-deal/server/internal/db/gen"
@@ -70,11 +71,13 @@ func TestHtmlEscape(t *testing.T) {
 		{"<b>", "&lt;b&gt;"},
 		{"a&b", "a&amp;b"},
 		{"normal", "normal"},
+		{`"quote"`, "&#34;quote&#34;"},
+		{"it's", "it&#39;s"},
 	}
 	for _, tc := range cases {
-		got := htmlEscape(tc.in)
+		got := html.EscapeString(tc.in)
 		if got != tc.want {
-			t.Errorf("htmlEscape(%q) = %q, want %q", tc.in, got, tc.want)
+			t.Errorf("html.EscapeString(%q) = %q, want %q", tc.in, got, tc.want)
 		}
 	}
 }

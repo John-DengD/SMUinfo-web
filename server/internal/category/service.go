@@ -2,6 +2,7 @@ package category
 
 import (
 	"context"
+	"time"
 
 	"github.com/John-DengD/smu-deal/server/internal/db/gen"
 )
@@ -21,20 +22,33 @@ func NewService(q Querier) *Service {
 
 // Item mirrors the Category entity wire contract (camelCase JSON).
 type Item struct {
-	ID        int64   `json:"id"`
-	Name      string  `json:"name"`
-	Icon      *string `json:"icon"`
-	SortOrder int32   `json:"sortOrder"`
-	Status    string  `json:"status"`
+	ID        int64      `json:"id"`
+	Name      string     `json:"name"`
+	Icon      *string    `json:"icon"`
+	SortOrder int32      `json:"sortOrder"`
+	Status    string     `json:"status"`
+	CreatedAt *time.Time `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 func toItem(c gen.Category) Item {
+	var createdAt, updatedAt *time.Time
+	if c.CreatedAt.Valid {
+		t := c.CreatedAt.Time
+		createdAt = &t
+	}
+	if c.UpdatedAt.Valid {
+		t := c.UpdatedAt.Time
+		updatedAt = &t
+	}
 	return Item{
 		ID:        c.ID,
 		Name:      c.Name,
 		Icon:      c.Icon,
 		SortOrder: c.SortOrder,
 		Status:    c.Status,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
 	}
 }
 

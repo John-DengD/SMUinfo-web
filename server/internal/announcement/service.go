@@ -2,6 +2,7 @@ package announcement
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -58,7 +59,7 @@ func toItem(a gen.Announcement) Item {
 func (s *Service) Active(ctx context.Context) (*Item, error) {
 	row, err := s.q.GetActiveAnnouncement(ctx)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
