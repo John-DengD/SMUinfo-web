@@ -16,6 +16,7 @@ import (
 	"github.com/John-DengD/smu-deal/server/internal/favorite"
 	"github.com/John-DengD/smu-deal/server/internal/feedback"
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
+	"github.com/John-DengD/smu-deal/server/internal/lostfound"
 	"github.com/John-DengD/smu-deal/server/internal/message"
 	"github.com/John-DengD/smu-deal/server/internal/order"
 	"github.com/John-DengD/smu-deal/server/internal/product"
@@ -59,6 +60,7 @@ func main() {
 	favorite.Register(api, favorite.NewService(q))
 	order.Register(api, order.NewService(q, pool))
 	message.Register(api, message.NewService(q))
+	lostfound.Register(api, lostfound.NewService(q, pool))
 	upload.Register(api, upload.NewService(cfg.UploadDir, cfg.URLPrefix, cfg.MaxFileSize))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
