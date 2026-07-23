@@ -13,10 +13,12 @@ import (
 	"github.com/John-DengD/smu-deal/server/internal/config"
 	"github.com/John-DengD/smu-deal/server/internal/db"
 	"github.com/John-DengD/smu-deal/server/internal/db/gen"
+	"github.com/John-DengD/smu-deal/server/internal/favorite"
 	"github.com/John-DengD/smu-deal/server/internal/feedback"
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
 	"github.com/John-DengD/smu-deal/server/internal/product"
 	"github.com/John-DengD/smu-deal/server/internal/report"
+	"github.com/John-DengD/smu-deal/server/internal/upload"
 )
 
 func main() {
@@ -51,6 +53,8 @@ func main() {
 	report.Register(api, report.NewService(q))
 	feedback.Register(api, feedback.NewService(q))
 	announcement.Register(api, announcement.NewService(q))
+	favorite.Register(api, favorite.NewService(q))
+	upload.Register(api, upload.NewService(cfg.UploadDir, cfg.URLPrefix, cfg.MaxFileSize))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
 		slog.Error("run", "err", err)
