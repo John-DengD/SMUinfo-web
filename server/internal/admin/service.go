@@ -15,6 +15,23 @@ import (
 	"github.com/John-DengD/smu-deal/server/internal/product"
 )
 
+// TxBeginner begins a database transaction. Satisfied by *pgxpool.Pool.
+// Only the announcement create/update paths need it, since each performs two
+// writes (insert/update + disableOtherActive) that must be atomic to preserve
+// the single-active invariant, matching Java @Transactional. Tests that don't
+// exercise those paths may pass a nil pool.
+type TxBeginner interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+}
+
+// annTxQuerier is the subset of writes the transactional announcement paths run
+// inside a transaction. Both *gen.Queries (production) and the test stub satisfy it.
+type annTxQuerier interface {
+	InsertAnnouncement(ctx context.Context, arg gen.InsertAnnouncementParams) (gen.Announcement, error)
+	UpdateAnnouncement(ctx context.Context, arg gen.UpdateAnnouncementParams) (gen.Announcement, error)
+	DisableOtherActiveAnnouncements(ctx context.Context, id int64) error
+}
+
 // Querier is the subset of the sqlc-generated *gen.Queries the admin service needs.
 type Querier interface {
 	// users
@@ -54,13 +71,25 @@ type Querier interface {
 type Service struct {
 	q       Querier
 	product *product.Service
+	pool    TxBeginner
+	// newAnnTx builds the tx-scoped announcement writer from a begun transaction.
+	// In production it returns gen.New(tx); tests can override it to route tx
+	// writes back to their stub without a real DB.
+	newAnnTx func(tx pgx.Tx) annTxQuerier
 }
 
 // NewService constructs the admin service. The product service is reused for
 // admin product listing (includeAllStatus) and force-status changes, matching
-// the Java AdminController delegating to ProductService.
-func NewService(q Querier, prod *product.Service) *Service {
-	return &Service{q: q, product: prod}
+// the Java AdminController delegating to ProductService. pool is used only by
+// the announcement create/update paths to run their two writes atomically; in
+// production it is the same *pgxpool.Pool backing q.
+func NewService(q Querier, prod *product.Service, pool TxBeginner) *Service {
+	return &Service{
+		q:        q,
+		product:  prod,
+		pool:     pool,
+		newAnnTx: func(tx pgx.Tx) annTxQuerier { return gen.New(tx) },
+	}
 }
 
 // --- users ---
@@ -531,7 +560,17 @@ func (s *Service) CreateAnnouncement(ctx context.Context, adminID int64, req Ann
 	if err != nil {
 		return Announcement{}, err
 	}
-	created, err := s.q.InsertAnnouncement(ctx, gen.InsertAnnouncementParams{
+	// Insert + disableOtherActive must be atomic (matches Java @Transactional):
+	// a failure between the two writes could otherwise leave two ACTIVE
+	// announcements, breaking the single-active invariant.
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return Announcement{}, err
+	}
+	defer tx.Rollback(ctx) // no-op after a successful Commit
+	qtx := s.newAnnTx(tx)
+
+	created, err := qtx.InsertAnnouncement(ctx, gen.InsertAnnouncementParams{
 		Title:     cleanAnnouncement(req.Title),
 		Content:   cleanAnnouncement(req.Content),
 		Status:    status,
@@ -541,9 +580,12 @@ func (s *Service) CreateAnnouncement(ctx context.Context, adminID int64, req Ann
 		return Announcement{}, err
 	}
 	if status == "ACTIVE" {
-		if err := s.q.DisableOtherActiveAnnouncements(ctx, created.ID); err != nil {
+		if err := qtx.DisableOtherActiveAnnouncements(ctx, created.ID); err != nil {
 			return Announcement{}, err
 		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Announcement{}, err
 	}
 	final, err := s.q.GetAnnouncement(ctx, created.ID)
 	if err != nil {
@@ -567,7 +609,17 @@ func (s *Service) UpdateAnnouncement(ctx context.Context, id int64, req Announce
 	if err != nil {
 		return Announcement{}, err
 	}
-	if _, err := s.q.UpdateAnnouncement(ctx, gen.UpdateAnnouncementParams{
+	// Update + disableOtherActive must be atomic (matches Java @Transactional):
+	// a failure between the two writes could otherwise leave two ACTIVE
+	// announcements, breaking the single-active invariant.
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return Announcement{}, err
+	}
+	defer tx.Rollback(ctx) // no-op after a successful Commit
+	qtx := s.newAnnTx(tx)
+
+	if _, err := qtx.UpdateAnnouncement(ctx, gen.UpdateAnnouncementParams{
 		ID:      id,
 		Title:   cleanAnnouncement(req.Title),
 		Content: cleanAnnouncement(req.Content),
@@ -576,9 +628,12 @@ func (s *Service) UpdateAnnouncement(ctx context.Context, id int64, req Announce
 		return Announcement{}, err
 	}
 	if status == "ACTIVE" {
-		if err := s.q.DisableOtherActiveAnnouncements(ctx, id); err != nil {
+		if err := qtx.DisableOtherActiveAnnouncements(ctx, id); err != nil {
 			return Announcement{}, err
 		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Announcement{}, err
 	}
 	final, err := s.q.GetAnnouncement(ctx, id)
 	if err != nil {

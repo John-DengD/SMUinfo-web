@@ -66,7 +66,7 @@ func main() {
 	lostfound.Register(api, lostfound.NewService(q, pool))
 	transit.Register(api, transit.NewService(q))
 	upload.Register(api, upload.NewService(cfg.UploadDir, cfg.URLPrefix, cfg.MaxFileSize))
-	admin.Register(api, admin.NewService(q, productSvc))
+	admin.Register(api, admin.NewService(q, productSvc, pool))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
 		slog.Error("run", "err", err)

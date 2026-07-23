@@ -127,7 +127,43 @@ func (s *stubQuerier) DisableOtherActiveAnnouncements(_ context.Context, id int6
 	return nil
 }
 
-func newSvc(q Querier) *Service { return NewService(q, nil) }
+// fakeTx is a no-op pgx.Tx used to exercise the transactional announcement
+// paths without a real database. The service builds its tx-scoped writer via
+// newAnnTx (overridden in newSvc to route to the stub), so this tx is never
+// used for actual queries — only Begin/Commit/Rollback are invoked.
+type fakeTx struct {
+	pgx.Tx
+	committed  bool
+	rolledBack bool
+}
+
+func (t *fakeTx) Commit(context.Context) error   { t.committed = true; return nil }
+func (t *fakeTx) Rollback(context.Context) error { t.rolledBack = true; return nil }
+
+// fakeBeginner satisfies TxBeginner, handing out the same fakeTx each Begin.
+type fakeBeginner struct {
+	tx *fakeTx
+}
+
+func (b *fakeBeginner) Begin(context.Context) (pgx.Tx, error) {
+	if b.tx == nil {
+		b.tx = &fakeTx{}
+	}
+	return b.tx, nil
+}
+
+// newSvc wires a Service whose transactional announcement writes route back to
+// the stub, so Create/UpdateAnnouncement can be tested without a real DB.
+func newSvc(q Querier) *Service {
+	svc := NewService(q, nil, &fakeBeginner{})
+	svc.newAnnTx = func(pgx.Tx) annTxQuerier {
+		if aq, ok := q.(annTxQuerier); ok {
+			return aq
+		}
+		return nil
+	}
+	return svc
+}
 
 func isBiz(t *testing.T, err error, wantCode int, wantMsg string) {
 	t.Helper()
@@ -245,6 +281,52 @@ func TestCreateAnnouncement_ActiveDisablesOthers(t *testing.T) {
 	}
 	if len(q.disableOtherCalls) != 1 {
 		t.Fatalf("expected disableOtherActive to be called once, got %d", len(q.disableOtherCalls))
+	}
+}
+
+func TestCreateAnnouncement_CommitsTransaction(t *testing.T) {
+	// The insert AND disableOtherActive must both run through the tx and the tx
+	// must be committed, proving the single-active toggle is atomic.
+	q := &stubQuerier{}
+	beginner := &fakeBeginner{}
+	svc := NewService(q, nil, beginner)
+	svc.newAnnTx = func(pgx.Tx) annTxQuerier { return q }
+	active := "active"
+	if _, err := svc.CreateAnnouncement(context.Background(), 1, AnnouncementSaveReq{
+		Title: "T", Content: "C", Status: &active,
+	}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if q.insertedAnn.Title != "T" {
+		t.Fatalf("expected insert to go through tx, got %+v", q.insertedAnn)
+	}
+	if len(q.disableOtherCalls) != 1 {
+		t.Fatalf("expected disableOtherActive once via tx, got %d", len(q.disableOtherCalls))
+	}
+	if beginner.tx == nil || !beginner.tx.committed {
+		t.Fatalf("expected the transaction to be committed")
+	}
+}
+
+func TestUpdateAnnouncement_CommitsTransaction(t *testing.T) {
+	q := &stubQuerier{announcements: map[int64]gen.Announcement{5: {ID: 5, Status: "INACTIVE"}}}
+	beginner := &fakeBeginner{}
+	svc := NewService(q, nil, beginner)
+	svc.newAnnTx = func(pgx.Tx) annTxQuerier { return q }
+	active := "active"
+	if _, err := svc.UpdateAnnouncement(context.Background(), 5, AnnouncementSaveReq{
+		Title: "T", Content: "C", Status: &active,
+	}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if q.updatedAnn.ID != 5 || q.updatedAnn.Status != "ACTIVE" {
+		t.Fatalf("expected update to go through tx, got %+v", q.updatedAnn)
+	}
+	if len(q.disableOtherCalls) != 1 || q.disableOtherCalls[0] != 5 {
+		t.Fatalf("expected disableOtherActive(5) once via tx, got %v", q.disableOtherCalls)
+	}
+	if beginner.tx == nil || !beginner.tx.committed {
+		t.Fatalf("expected the transaction to be committed")
 	}
 }
 
