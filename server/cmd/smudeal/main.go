@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/John-DengD/smu-deal/server/internal/admin"
 	"github.com/John-DengD/smu-deal/server/internal/announcement"
 	"github.com/John-DengD/smu-deal/server/internal/auth"
 	"github.com/John-DengD/smu-deal/server/internal/category"
@@ -54,7 +55,8 @@ func main() {
 	api := r.Group("/api")
 	auth.Register(api, auth.NewService(q, jwt))
 	category.Register(api, category.NewService(q))
-	product.Register(api, product.NewService(q, pool))
+	productSvc := product.NewService(q, pool)
+	product.Register(api, productSvc)
 	report.Register(api, report.NewService(q))
 	feedback.Register(api, feedback.NewService(q))
 	announcement.Register(api, announcement.NewService(q))
@@ -64,6 +66,7 @@ func main() {
 	lostfound.Register(api, lostfound.NewService(q, pool))
 	transit.Register(api, transit.NewService(q))
 	upload.Register(api, upload.NewService(cfg.UploadDir, cfg.URLPrefix, cfg.MaxFileSize))
+	admin.Register(api, admin.NewService(q, productSvc))
 
 	if err := r.Run(":" + cfg.Port); err != nil {
 		slog.Error("run", "err", err)
