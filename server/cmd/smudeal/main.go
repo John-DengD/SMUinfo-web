@@ -15,6 +15,7 @@ import (
 	"github.com/John-DengD/smu-deal/server/internal/db/gen"
 	"github.com/John-DengD/smu-deal/server/internal/feedback"
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
+	"github.com/John-DengD/smu-deal/server/internal/product"
 	"github.com/John-DengD/smu-deal/server/internal/report"
 )
 
@@ -46,6 +47,7 @@ func main() {
 	api := r.Group("/api")
 	auth.Register(api, auth.NewService(q, jwt))
 	category.Register(api, category.NewService(q))
+	product.Register(api, product.NewService(q))
 	report.Register(api, report.NewService(q))
 	feedback.Register(api, feedback.NewService(q))
 	announcement.Register(api, announcement.NewService(q))
