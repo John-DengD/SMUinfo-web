@@ -14,6 +14,13 @@ import (
 	"github.com/John-DengD/smu-deal/server/internal/httpx"
 )
 
+// TxBeginner begins a database transaction. Satisfied by *pgxpool.Pool.
+// Kept as a narrow interface so tests that don't exercise the transactional
+// write paths (Create/Update) can leave it nil.
+type TxBeginner interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+}
+
 // Querier is the subset of the sqlc-generated *gen.Queries the product service needs.
 type Querier interface {
 	GetProduct(ctx context.Context, id int64) (gen.Product, error)
@@ -33,12 +40,35 @@ type Querier interface {
 	InsertProductComment(ctx context.Context, arg gen.InsertProductCommentParams) (gen.ProductComment, error)
 }
 
-type Service struct {
-	q Querier
+// txWriter is the set of write operations Create/Update run inside a
+// transaction. Both *gen.Queries (production) and the test stub satisfy it.
+type txWriter interface {
+	InsertProduct(ctx context.Context, arg gen.InsertProductParams) (gen.Product, error)
+	UpdateProduct(ctx context.Context, arg gen.UpdateProductParams) (gen.Product, error)
+	InsertProductImage(ctx context.Context, arg gen.InsertProductImageParams) error
+	DeleteProductImages(ctx context.Context, productID int64) error
 }
 
-func NewService(q Querier) *Service {
-	return &Service{q: q}
+type Service struct {
+	q    Querier
+	pool TxBeginner
+	// newTxWriter builds the tx-scoped writer from a begun transaction. In
+	// production it returns gen.New(tx); tests can override it to route tx
+	// writes back to their stub without a real DB.
+	newTxWriter func(tx pgx.Tx) txWriter
+}
+
+// NewService constructs the product service. pool is used only by the
+// multi-write paths (Create/Update) to run them atomically; read-only and
+// single-write paths go through q. In production both point at the same
+// *pgxpool.Pool (q via gen.New(pool)); tests that don't touch Create/Update
+// may pass a nil pool.
+func NewService(q Querier, pool TxBeginner) *Service {
+	return &Service{
+		q:           q,
+		pool:        pool,
+		newTxWriter: func(tx pgx.Tx) txWriter { return gen.New(tx) },
+	}
 }
 
 // Item mirrors ProductDTO.Item (camelCase wire contract). price/originalPrice
@@ -133,7 +163,17 @@ func (s *Service) List(ctx context.Context, q ListQuery, currentUserID *int64) (
 	if size < 1 {
 		size = 12
 	}
-	offset := (page - 1) * size
+	// Clamp size to a sane maximum (Java default is 12; happy path unaffected)
+	// and compute the offset in int64 so absurd query values can't overflow the
+	// int32 multiplication before it is stored back in an int32 SQL parameter.
+	if size > 100 {
+		size = 100
+	}
+	off64 := (int64(page) - 1) * int64(size)
+	if off64 > int64(^uint32(0)>>1) { // clamp to max int32
+		off64 = int64(^uint32(0) >> 1)
+	}
+	offset := int32(off64)
 
 	// Status logic mirrors Java: explicit status filters directly; otherwise, when
 	// no sellerId and includeAllStatus is not true, restrict to ON_SALE/RESERVED.
@@ -225,6 +265,10 @@ func (s *Service) Create(ctx context.Context, sellerID int64, req CreateReq) (It
 	if !req.Price.Valid {
 		return Item{}, httpx.Biz("请输入价格")
 	}
+	// Mirror Java @Positive on price: reject price <= 0 as a business error.
+	if !priceIsPositive(req.Price) {
+		return Item{}, httpx.Biz("价格必须大于0")
+	}
 
 	title := html.EscapeString(req.Title)
 	var desc *string
@@ -233,7 +277,16 @@ func (s *Service) Create(ctx context.Context, sellerID int64, req CreateReq) (It
 		desc = &d
 	}
 
-	p, err := s.q.InsertProduct(ctx, gen.InsertProductParams{
+	// Product insert + image inserts must be atomic (matches Java @Transactional):
+	// a mid-operation failure must not leave a product row without its images.
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return Item{}, err
+	}
+	defer tx.Rollback(ctx) // no-op after a successful Commit
+	qtx := s.newTxWriter(tx)
+
+	p, err := qtx.InsertProduct(ctx, gen.InsertProductParams{
 		SellerID:       sellerID,
 		CategoryID:     *req.CategoryID,
 		Title:          title,
@@ -248,7 +301,10 @@ func (s *Service) Create(ctx context.Context, sellerID int64, req CreateReq) (It
 	if err != nil {
 		return Item{}, err
 	}
-	if err := s.saveImages(ctx, p.ID, req.Images); err != nil {
+	if err := saveImages(ctx, qtx, p.ID, req.Images); err != nil {
+		return Item{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
 		return Item{}, err
 	}
 	// Java returns detail(p.getId(), sellerId), which increments view_count.
@@ -295,7 +351,17 @@ func (s *Service) Update(ctx context.Context, productID, currentUserID int64, is
 		p.Status = *req.Status
 	}
 
-	if _, err := s.q.UpdateProduct(ctx, gen.UpdateProductParams{
+	// Product update + (optional) full image replacement must be atomic
+	// (matches Java @Transactional): a failure between deleting the old images
+	// and re-inserting the new ones must not wipe the product's image state.
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return Item{}, err
+	}
+	defer tx.Rollback(ctx) // no-op after a successful Commit
+	qtx := s.newTxWriter(tx)
+
+	if _, err := qtx.UpdateProduct(ctx, gen.UpdateProductParams{
 		ID:             p.ID,
 		Title:          p.Title,
 		Description:    p.Description,
@@ -310,12 +376,15 @@ func (s *Service) Update(ctx context.Context, productID, currentUserID int64, is
 	}
 
 	if req.Images != nil {
-		if err := s.q.DeleteProductImages(ctx, productID); err != nil {
+		if err := qtx.DeleteProductImages(ctx, productID); err != nil {
 			return Item{}, err
 		}
-		if err := s.saveImages(ctx, productID, *req.Images); err != nil {
+		if err := saveImages(ctx, qtx, productID, *req.Images); err != nil {
 			return Item{}, err
 		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Item{}, err
 	}
 	// Java returns detail(productId, currentUserId), which increments view_count.
 	return s.Detail(ctx, productID, &currentUserID)
@@ -336,12 +405,18 @@ func (s *Service) ChangeStatus(ctx context.Context, productID, currentUserID int
 	return s.q.SetProductStatus(ctx, gen.SetProductStatusParams{ID: productID, Status: status})
 }
 
-func (s *Service) saveImages(ctx context.Context, productID int64, urls []string) error {
+// imageInserter is the single-method subset saveImages needs; satisfied both by
+// the *gen.Queries built from a tx and by the base Querier.
+type imageInserter interface {
+	InsertProductImage(ctx context.Context, arg gen.InsertProductImageParams) error
+}
+
+func saveImages(ctx context.Context, q imageInserter, productID int64, urls []string) error {
 	if len(urls) == 0 {
 		return nil
 	}
 	for i, url := range urls {
-		if err := s.q.InsertProductImage(ctx, gen.InsertProductImageParams{
+		if err := q.InsertProductImage(ctx, gen.InsertProductImageParams{
 			ProductID: productID,
 			ImageUrl:  url,
 			SortOrder: int32(i),
@@ -350,6 +425,15 @@ func (s *Service) saveImages(ctx context.Context, productID int64, urls []string
 		}
 	}
 	return nil
+}
+
+// priceIsPositive reports whether a valid Price is strictly greater than zero,
+// mirroring Java's @Positive on ProductDTO.CreateReq.price.
+func priceIsPositive(p Price) bool {
+	if !p.Valid || p.NaN || p.Int == nil {
+		return false
+	}
+	return p.Int.Sign() > 0
 }
 
 // enrich replicates ProductService.enrich: batch-load images, sellers, categories,

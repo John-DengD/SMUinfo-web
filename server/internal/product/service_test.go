@@ -103,6 +103,39 @@ func (s *stubQuerier) InsertProductComment(_ context.Context, arg gen.InsertProd
 	return gen.ProductComment{ID: 7, ProductID: arg.ProductID, UserID: arg.UserID, Content: arg.Content}, nil
 }
 
+// fakeTx is a no-op pgx.Tx used to exercise the transactional write paths
+// without a real database. The service builds its tx-scoped writer via
+// newTxWriter (overridden in newTestService to route to the stub), so this tx
+// is never used for actual queries — only Begin/Commit/Rollback are invoked.
+type fakeTx struct {
+	pgx.Tx
+	committed  bool
+	rolledBack bool
+}
+
+func (t *fakeTx) Commit(context.Context) error   { t.committed = true; return nil }
+func (t *fakeTx) Rollback(context.Context) error { t.rolledBack = true; return nil }
+
+// fakeBeginner satisfies TxBeginner, handing out the same fakeTx each Begin.
+type fakeBeginner struct {
+	tx *fakeTx
+}
+
+func (b *fakeBeginner) Begin(context.Context) (pgx.Tx, error) {
+	if b.tx == nil {
+		b.tx = &fakeTx{}
+	}
+	return b.tx, nil
+}
+
+// newTestService wires a Service whose transactional writes route back to the
+// stub, so Create/Update can be tested without a real DB.
+func newTestService(stub *stubQuerier) *Service {
+	svc := NewService(stub, &fakeBeginner{})
+	svc.newTxWriter = func(pgx.Tx) txWriter { return stub }
+	return svc
+}
+
 func num(t *testing.T, s string) pgtype.Numeric {
 	t.Helper()
 	var n pgtype.Numeric
@@ -121,7 +154,7 @@ func price(t *testing.T, s string) Price {
 
 func TestListPaginationDefaults(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	if _, err := svc.List(context.Background(), ListQuery{}, nil); err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +168,7 @@ func TestListPaginationDefaults(t *testing.T) {
 
 func TestListPaginationOffset(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	page, size := int32(3), int32(20)
 	if _, err := svc.List(context.Background(), ListQuery{Page: &page, Size: &size}, nil); err != nil {
 		t.Fatal(err)
@@ -151,7 +184,7 @@ func TestListPaginationOffset(t *testing.T) {
 
 func TestListPaginationInvalidFallsBack(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	page, size := int32(0), int32(-5)
 	if _, err := svc.List(context.Background(), ListQuery{Page: &page, Size: &size}, nil); err != nil {
 		t.Fatal(err)
@@ -166,7 +199,7 @@ func TestListPaginationInvalidFallsBack(t *testing.T) {
 func TestListSortByPassthrough(t *testing.T) {
 	for _, sb := range []string{"price_asc", "price_desc", "hot", "newest", ""} {
 		stub := &stubQuerier{}
-		svc := NewService(stub)
+		svc := newTestService(stub)
 		var sbp *string
 		if sb != "" {
 			v := sb
@@ -185,7 +218,7 @@ func TestListSortByPassthrough(t *testing.T) {
 
 func TestListStatusExplicitDisablesDefault(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	st := "OFFLINE"
 	if _, err := svc.List(context.Background(), ListQuery{Status: &st}, nil); err != nil {
 		t.Fatal(err)
@@ -200,7 +233,7 @@ func TestListStatusExplicitDisablesDefault(t *testing.T) {
 
 func TestListDefaultStatusWhenNoSeller(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	if _, err := svc.List(context.Background(), ListQuery{}, nil); err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +244,7 @@ func TestListDefaultStatusWhenNoSeller(t *testing.T) {
 
 func TestListSellerDisablesDefaultStatus(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	sid := int64(5)
 	if _, err := svc.List(context.Background(), ListQuery{SellerID: &sid}, nil); err != nil {
 		t.Fatal(err)
@@ -223,7 +256,7 @@ func TestListSellerDisablesDefaultStatus(t *testing.T) {
 
 func TestListIncludeAllStatusDisablesDefault(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	yes := true
 	if _, err := svc.List(context.Background(), ListQuery{IncludeAllStatus: &yes}, nil); err != nil {
 		t.Fatal(err)
@@ -235,7 +268,7 @@ func TestListIncludeAllStatusDisablesDefault(t *testing.T) {
 
 func TestListBlankKeywordBecomesNil(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	blank := "   "
 	if _, err := svc.List(context.Background(), ListQuery{Keyword: &blank}, nil); err != nil {
 		t.Fatal(err)
@@ -249,7 +282,7 @@ func TestListBlankKeywordBecomesNil(t *testing.T) {
 
 func TestListEmptyRecordsSerializeArray(t *testing.T) {
 	stub := &stubQuerier{countResult: 0, listResult: nil}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	page, err := svc.List(context.Background(), ListQuery{}, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -274,7 +307,7 @@ func TestPriceJSONFormatMatchesJavaBigDecimal(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "12.50"), OriginalPrice: num(t, "99.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	item, err := svc.Detail(context.Background(), 1, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -298,7 +331,7 @@ func TestPriceNullSerializesNull(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "5.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	item, err := svc.Detail(context.Background(), 1, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -317,7 +350,7 @@ func TestDetailIncrementsAndReflectsViewCount(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "1.00"), ViewCount: 41},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	item, err := svc.Detail(context.Background(), 1, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -331,7 +364,7 @@ func TestDetailIncrementsAndReflectsViewCount(t *testing.T) {
 }
 
 func TestDetailNotFound(t *testing.T) {
-	svc := NewService(&stubQuerier{})
+	svc := newTestService(&stubQuerier{})
 	_, err := svc.Detail(context.Background(), 999, nil)
 	var be httpx.BizError
 	if !errors.As(err, &be) || be.Msg != "商品不存在" {
@@ -347,7 +380,7 @@ func TestUpdateNonOwnerDenied(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "1.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	_, err := svc.Update(context.Background(), 1, 999, false, UpdateReq{})
 	var be httpx.BizError
 	if !errors.As(err, &be) {
@@ -364,7 +397,7 @@ func TestUpdateAdminBypassesOwnership(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "1.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	newTitle := "updated"
 	_, err := svc.Update(context.Background(), 1, 999, true, UpdateReq{Title: &newTitle})
 	if err != nil {
@@ -378,7 +411,7 @@ func TestChangeStatusNonOwnerDenied(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "1.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	err := svc.ChangeStatus(context.Background(), 1, 999, false, "OFFLINE")
 	var be httpx.BizError
 	if !errors.As(err, &be) || be.Code != 403 || be.Msg != "无权操作" {
@@ -392,7 +425,7 @@ func TestChangeStatusOwnerSetsOffline(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "1.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	if err := svc.ChangeStatus(context.Background(), 1, 2, false, "OFFLINE"); err != nil {
 		t.Fatal(err)
 	}
@@ -404,7 +437,7 @@ func TestChangeStatusOwnerSetsOffline(t *testing.T) {
 // --- create validation + escaping + image sort order ---
 
 func TestCreateValidation(t *testing.T) {
-	svc := NewService(&stubQuerier{})
+	svc := newTestService(&stubQuerier{})
 	cid := int64(3)
 	cases := []struct {
 		name string
@@ -414,6 +447,8 @@ func TestCreateValidation(t *testing.T) {
 		{"no title", CreateReq{CategoryID: &cid, Price: price(t, "1.00")}, "请输入标题"},
 		{"no category", CreateReq{Title: "t", Price: price(t, "1.00")}, "请选择分类"},
 		{"no price", CreateReq{Title: "t", CategoryID: &cid}, "请输入价格"},
+		{"zero price", CreateReq{Title: "t", CategoryID: &cid, Price: price(t, "0.00")}, "价格必须大于0"},
+		{"negative price", CreateReq{Title: "t", CategoryID: &cid, Price: price(t, "-5.00")}, "价格必须大于0"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -426,9 +461,42 @@ func TestCreateValidation(t *testing.T) {
 	}
 }
 
+func TestListPaginationOverflowClamped(t *testing.T) {
+	stub := &stubQuerier{}
+	svc := newTestService(stub)
+	// Absurd inputs that would overflow int32 offset math ((page-1)*size).
+	page, size := int32(1<<30), int32(1<<20)
+	if _, err := svc.List(context.Background(), ListQuery{Page: &page, Size: &size}, nil); err != nil {
+		t.Fatal(err)
+	}
+	// size clamped to 100; offset clamped to max int32 (no overflow/negative).
+	if stub.listParams.Lim != 100 {
+		t.Fatalf("size should clamp to 100, got %d", stub.listParams.Lim)
+	}
+	if stub.listParams.Off < 0 {
+		t.Fatalf("offset must not overflow negative, got %d", stub.listParams.Off)
+	}
+}
+
+func TestCreateCommitsTransaction(t *testing.T) {
+	stub := &stubQuerier{}
+	beginner := &fakeBeginner{}
+	svc := NewService(stub, beginner)
+	svc.newTxWriter = func(pgx.Tx) txWriter { return stub }
+	cid := int64(3)
+	if _, err := svc.Create(context.Background(), 1, CreateReq{
+		Title: "t", CategoryID: &cid, Price: price(t, "1.00"), Images: []string{"a.jpg"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if beginner.tx == nil || !beginner.tx.committed {
+		t.Fatal("Create must commit its transaction")
+	}
+}
+
 func TestCreateEscapesAndOrdersImages(t *testing.T) {
 	stub := &stubQuerier{}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	cid := int64(3)
 	desc := "<b>hi</b>"
 	_, err := svc.Create(context.Background(), 1, CreateReq{
@@ -469,7 +537,7 @@ func TestEnrichCoverAndFavorited(t *testing.T) {
 		cats:   []gen.ListCategoriesByIDsRow{{ID: 3, Name: "书籍"}},
 		favIDs: []int64{1},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	uid := int64(9)
 	item, err := svc.Detail(context.Background(), 1, &uid)
 	if err != nil {
@@ -498,7 +566,7 @@ func TestEnrichNoImagesGivesNullCoverEmptyArray(t *testing.T) {
 			1: {ID: 1, SellerID: 2, CategoryID: 3, Title: "x", Price: num(t, "1.00")},
 		},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	item, err := svc.Detail(context.Background(), 1, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -536,7 +604,7 @@ func TestCreateCommentValidation(t *testing.T) {
 	stub := &stubQuerier{
 		products: map[int64]gen.Product{1: {ID: 1, SellerID: 2, CategoryID: 3, Price: num(t, "1.00")}},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 
 	_, err := svc.CreateComment(context.Background(), 1, 9, CommentCreateReq{Content: "   "})
 	var be httpx.BizError
@@ -555,7 +623,7 @@ func TestCreateCommentEscapesAndReturnsCommenter(t *testing.T) {
 		products: map[int64]gen.Product{1: {ID: 1, SellerID: 2, CategoryID: 3, Price: num(t, "1.00")}},
 		users:    []gen.ListUsersByIDsRow{{ID: 9, Name: "Bob", StudentNo: "20219999"}},
 	}
-	svc := NewService(stub)
+	svc := newTestService(stub)
 	item, err := svc.CreateComment(context.Background(), 1, 9, CommentCreateReq{Content: "<hi>"})
 	if err != nil {
 		t.Fatal(err)
@@ -572,7 +640,7 @@ func TestCreateCommentEscapesAndReturnsCommenter(t *testing.T) {
 }
 
 func TestCommentsProductNotFound(t *testing.T) {
-	svc := NewService(&stubQuerier{})
+	svc := newTestService(&stubQuerier{})
 	_, err := svc.ListComments(context.Background(), 404)
 	var be httpx.BizError
 	if !errors.As(err, &be) || be.Msg != "商品不存在" {
