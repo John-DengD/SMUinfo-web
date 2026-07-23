@@ -138,19 +138,19 @@ type TradeOrder struct {
 
 type TransitDeparture struct {
 	ID               int64
-	LineCode         *string
-	LineName         *string
-	StationCode      *string
-	StationName      *string
-	DirectionCode    *string
-	DirectionName    *string
-	ScheduleType     *string
-	ScheduleTypeName *string
+	LineCode         string
+	LineName         string
+	StationCode      string
+	StationName      string
+	DirectionCode    string
+	DirectionName    string
+	ScheduleType     string
+	ScheduleTypeName string
 	DepartureTime    pgtype.Time
-	ServiceType      *string
-	ServiceLabel     *string
-	SortOrder        *int32
-	Status           *string
+	ServiceType      string
+	ServiceLabel     string
+	SortOrder        int32
+	Status           string
 	CreatedAt        pgtype.Timestamptz
 	UpdatedAt        pgtype.Timestamptz
 }

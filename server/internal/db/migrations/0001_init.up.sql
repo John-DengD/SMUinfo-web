@@ -149,13 +149,49 @@ CREATE INDEX idx_lfi_item_sort ON lost_found_image(lost_found_id, sort_order, id
 
 CREATE TABLE transit_departure (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    line_code VARCHAR(32), line_name VARCHAR(64),
-    station_code VARCHAR(32), station_name VARCHAR(64),
-    direction_code VARCHAR(32), direction_name VARCHAR(64),
-    schedule_type VARCHAR(32), schedule_type_name VARCHAR(64),
-    departure_time TIME, service_type VARCHAR(32), service_label VARCHAR(64),
-    sort_order INT, status VARCHAR(16) DEFAULT 'ACTIVE',
+    line_code VARCHAR(32) NOT NULL, line_name VARCHAR(64) NOT NULL,
+    station_code VARCHAR(32) NOT NULL, station_name VARCHAR(64) NOT NULL,
+    direction_code VARCHAR(32) NOT NULL, direction_name VARCHAR(64) NOT NULL,
+    schedule_type VARCHAR(32) NOT NULL, schedule_type_name VARCHAR(64) NOT NULL,
+    departure_time TIME NOT NULL,
+    service_type VARCHAR(32) NOT NULL DEFAULT 'NORMAL',
+    service_label VARCHAR(64) NOT NULL DEFAULT '普通车',
+    sort_order INT NOT NULL DEFAULT 0,
+    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER trg_transit_upd BEFORE UPDATE ON transit_departure FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Performance indexes (ported from sql/performance-indexes.sql and TransitDataInitializer)
+CREATE INDEX IF NOT EXISTS idx_product_list_created ON product (status, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_product_category_created ON product (category_id, status, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_product_seller_created ON product (seller_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_product_price ON product (status, price, id);
+CREATE INDEX IF NOT EXISTS idx_product_hot ON product (status, view_count, id);
+CREATE INDEX IF NOT EXISTS idx_product_condition ON product (condition_level, status, id);
+
+-- Superset of idx_product_image_product; drop the redundant single-column index.
+DROP INDEX IF EXISTS idx_product_image_product;
+CREATE INDEX IF NOT EXISTS idx_product_image_product_sort ON product_image (product_id, sort_order, id);
+
+CREATE INDEX IF NOT EXISTS idx_product_comment_product_created ON product_comment (product_id, created_at, id);
+
+CREATE INDEX IF NOT EXISTS idx_message_user_created ON message (receiver_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_message_sender_created ON message (sender_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_message_pair_created ON message (sender_id, receiver_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_message_unread ON message (receiver_id, is_read, id);
+
+CREATE INDEX IF NOT EXISTS idx_trade_order_buyer_created ON trade_order (buyer_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_trade_order_seller_created ON trade_order (seller_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_trade_order_product_status ON trade_order (product_id, status, id);
+
+CREATE INDEX IF NOT EXISTS idx_report_status_created ON report (status, created_at, id);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_user_created ON feedback (user_id, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_feedback_status_created ON feedback (status, created_at, id);
+
+CREATE INDEX IF NOT EXISTS idx_category_status_sort ON category (status, sort_order, id);
+
+CREATE INDEX IF NOT EXISTS idx_transit_lookup ON transit_departure (line_code, schedule_type, direction_code, station_code, status, departure_time);
+CREATE INDEX IF NOT EXISTS idx_transit_options ON transit_departure (line_code, status, sort_order);
