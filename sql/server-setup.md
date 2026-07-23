@@ -1,75 +1,81 @@
-# 服务器数据库初始化
+# 服务器数据库初始化（PostgreSQL）
 
-以下命令中的 `<SERVER_IP>`、`<DB_USER>` 和 `<STRONG_DB_PASSWORD>` 需要替换为实际值。不要把真实服务器凭据提交到仓库。
+以下命令中的占位符（`<SERVER_IP>`、`<STRONG_PASSWORD>` 等）需替换为实际值。不要把真实服务器凭据提交到仓库。
 
-## 1. 登录服务器，安装并启动 MySQL（如未安装）
+## 1. 安装并启动 PostgreSQL
 
 Ubuntu / Debian：
 ```bash
 ssh root@<SERVER_IP>
 
 apt update
-apt install -y mysql-server
-systemctl enable --now mysql
+apt install -y postgresql
+systemctl enable --now postgresql
 ```
 
 CentOS / Rocky：
 ```bash
 ssh root@<SERVER_IP>
 
-yum install -y mysql-server
-systemctl enable --now mysqld
+dnf install -y postgresql-server postgresql-contrib
+postgresql-setup --initdb
+systemctl enable --now postgresql
 ```
 
-## 2. 允许外网访问（开发期方便，生产建议改 SSH 隧道或安全组限制 IP）
+## 2. 创建数据库角色和数据库
+
+以 `postgres` 超级用户身份进入 psql：
 
 ```bash
-# 进入 MySQL
-mysql -uroot
-
-# 创建仅用于本项目的数据库账号
-CREATE USER '<DB_USER>'@'%' IDENTIFIED BY '<STRONG_DB_PASSWORD>';
-GRANT ALL PRIVILEGES ON smu_deal.* TO '<DB_USER>'@'%';
-FLUSH PRIVILEGES;
-exit;
+sudo -u postgres psql
 ```
 
-修改 `/etc/mysql/mysql.conf.d/mysqld.cnf`（或 `/etc/my.cnf`），把 `bind-address = 127.0.0.1` 改成 `bind-address = 0.0.0.0`，然后：
-```bash
-systemctl restart mysql
+在 psql 提示符下执行：
+
+```sql
+CREATE ROLE smu_deal LOGIN PASSWORD '<STRONG_PASSWORD>';
+CREATE DATABASE smu_deal OWNER smu_deal;
+\q
 ```
 
-开放 3306 端口（云厂商控制台安全组也要放行）：
-```bash
-ufw allow 3306/tcp     # Ubuntu
-firewall-cmd --permanent --add-port=3306/tcp && firewall-cmd --reload  # CentOS
-```
+**无需手动导入任何 SQL 文件**。Go 二进制启动时会自动把 `$MIGRATIONS_DIR`（默认 `/opt/smu-deal/migrations`）下的迁移文件按顺序应用到数据库：
 
-## 3. 导入建表 SQL
+- `0001_init.up.sql` — 建表结构（users、products、categories、messages、orders、reports 等）
+- `0002_seed.up.sql` — 种子数据（9 个分类、admin / student001 账号）
+- `0003_transit_seed.up.sql` — 摆渡车时刻表
 
-在本机执行（无需登录服务器）：
-```bash
-mysql -h <SERVER_IP> -u<DB_USER> -p < sql/init.sql
-```
+每次重启服务时，二进制会检测并只执行尚未应用的迁移，已执行过的跳过。因此部署新版本只需重启服务即可，无需手动运行 `migrate` 工具。
 
-或登录服务器后：
-```bash
-ssh root@<SERVER_IP>
-mysql -u<DB_USER> -p < /path/to/init.sql
-```
+## 3. 配置服务
 
-## 4. 验证
+将 `deploy/smu-deal.service` 复制到服务器，编辑其中的 `DB_URL`、`JWT_SECRET`、`CORS_ALLOWED_ORIGINS`，然后：
 
 ```bash
-mysql -h <SERVER_IP> -u<DB_USER> -p -e "USE smu_deal; SHOW TABLES;"
+sudo cp smu-deal.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now smu-deal.service
 ```
 
-应当看到 `user / category / product / product_image / favorite / message / trade_order / report` 八张表。
+服务启动后，应用会自动连接 PostgreSQL 并完成数据库迁移，监听 `PORT`（默认 8080）。
 
-## 5. 图片存储说明
+可用以下命令验证健康状态：
 
-商品图片**不会**存到 MySQL，而是上传后写入后端机器的 `uploads/` 目录，DB 只保存路径（如 `/uploads/2026-05-28/xxx.jpg`）。
+```bash
+curl http://127.0.0.1:8080/healthz
+# 预期返回 200 {"code":0,...}
 
-- 如果后端也部署在该服务器上：可以直接挂数据盘到 `/data/uploads/`，并设环境变量 `UPLOAD_DIR=/data/uploads` 启动后端。40G 硬盘按单图 500KB 估算约 8 万张。
-- 如果后端在本地开发：图片就存在本地 `backend/uploads/` 下，不上传到服务器。
-- 后期数据量更大时，可平滑替换成 MinIO（自建 S3）或 OSS / COS，业务代码无需改动，只改 `UploadService.upload()` 的实现。
+systemctl status smu-deal.service
+```
+
+## 4. 图片存储说明
+
+商品图片**不会**存入 PostgreSQL，而是上传后写入后端机器的 `UPLOAD_DIR` 目录（默认 `/data/uploads`），DB 只保存路径（如 `/uploads/2026-05-28/xxx.jpg`）。
+
+```bash
+# 创建并挂载数据盘（示例）
+mkdir -p /data/uploads
+# 在 smu-deal.service 中设置：
+#   Environment=UPLOAD_DIR=/data/uploads
+```
+
+40 G 硬盘按单图 500 KB 估算可存约 8 万张。后期数据量更大时，可平滑替换为 MinIO（自建 S3）或 OSS / COS，业务代码无需改动，只改 upload 层实现。

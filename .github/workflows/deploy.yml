@@ -21,32 +21,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          distribution: temurin
-          java-version: "17"
-          cache: maven
+          go-version: stable
+          cache-dependency-path: server/go.sum
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Build backend
-        run: mvn -B -DskipTests package
-        working-directory: backend
-
-      - name: Build frontend
+      - name: Build static Linux binary
         run: |
-          npm ci
-          npm run build
-        working-directory: frontend
-
-      - name: Package frontend
-        run: tar -C frontend/dist -czf frontend-dist.tar.gz .
+          cd server
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o smudeal ./cmd/smudeal
 
       - name: Configure SSH
         env:
@@ -62,42 +46,37 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
-      - name: Upload backend jar
+      - name: Upload binary and migrations
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
         run: |
-          scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key backend/target/smu-deal-1.0.0.jar \
-            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smu-deal-1.0.0.jar"
-          scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key frontend-dist.tar.gz \
-            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smu-deal-frontend.tar.gz"
+          scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key \
+            server/smudeal \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smudeal"
+          scp -P "$DEPLOY_PORT" -i ~/.ssh/deploy_key -r \
+            server/internal/db/migrations \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/smudeal-migrations"
 
-      - name: Deploy and restart services
+      - name: Deploy and restart service
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
           APP_DIR: ${{ secrets.APP_DIR || '/opt/smu-deal' }}
-          WEB_DIR: ${{ secrets.WEB_DIR || '/var/www/smu-deal' }}
           SERVICE_NAME: ${{ secrets.SERVICE_NAME || 'smu-deal.service' }}
         run: |
           ssh -p "$DEPLOY_PORT" -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
             "set -eu
-             mkdir -p '$APP_DIR'
-             if [ -f '$APP_DIR/smu-deal.jar' ]; then
-               cp '$APP_DIR/smu-deal.jar' '$APP_DIR/smu-deal.jar.bak-'\"\$(date +%Y%m%d%H%M%S)\"
+             mkdir -p '$APP_DIR/migrations'
+             if [ -f '$APP_DIR/smudeal' ]; then
+               cp '$APP_DIR/smudeal' '$APP_DIR/smudeal.bak-'\"\$(date +%Y%m%d%H%M%S)\"
              fi
-             install -m 0644 /tmp/smu-deal-1.0.0.jar '$APP_DIR/smu-deal.jar'
-             mkdir -p '$WEB_DIR'
-             if [ -f '$WEB_DIR/index.html' ]; then
-               tar -C '$WEB_DIR' -czf '$APP_DIR/frontend.bak-'\"\$(date +%Y%m%d%H%M%S)\"'.tar.gz' .
-             fi
-             find '$WEB_DIR' -mindepth 1 -maxdepth 1 ! -name '.well-known' -exec rm -rf {} +
-             tar -xzf /tmp/smu-deal-frontend.tar.gz -C '$WEB_DIR'
+             install -m 0755 /tmp/smudeal '$APP_DIR/smudeal'
+             cp -r /tmp/smudeal-migrations/. '$APP_DIR/migrations/'
              systemctl restart '$SERVICE_NAME'
              sleep 5
+             curl -fsS http://127.0.0.1:8080/healthz
              systemctl is-active --quiet '$SERVICE_NAME'
-             nginx -t
-             systemctl reload nginx
-             systemctl --no-pager --lines=20 status '$SERVICE_NAME'"
+             systemctl status --no-pager --lines=20 '$SERVICE_NAME'"

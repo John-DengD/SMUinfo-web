@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	_ "time/tzdata" // embed tz database so Asia/Shanghai works on minimal server images
 
 	"github.com/John-DengD/smu-deal/server/internal/app"
 	"github.com/John-DengD/smu-deal/server/internal/config"
