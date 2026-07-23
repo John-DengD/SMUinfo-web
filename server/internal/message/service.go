@@ -118,10 +118,6 @@ func (s *Service) Conversations(ctx context.Context, userID int64) ([]Conversati
 	}
 
 	// LinkedHashMap equivalent: preserve insertion order (first-seen = latest message)
-	type convEntry struct {
-		conv  Conversation
-		order int
-	}
 	convMap := map[int64]*Conversation{}
 	convOrder := []int64{} // preserves insertion order
 
@@ -226,6 +222,14 @@ func (s *Service) Conversation(ctx context.Context, userID, peerID int64) ([]Ite
 				return nil, err
 			}
 			break // single bulk update is sufficient; break after first call
+		}
+	}
+
+	// Update in-memory slice to reflect the just-committed read state so the
+	// serialised response matches the DB (mirrors Java's m.setIsRead(true) loop).
+	for i := range msgs {
+		if msgs[i].ReceiverID == userID && !msgs[i].IsRead {
+			msgs[i].IsRead = true
 		}
 	}
 

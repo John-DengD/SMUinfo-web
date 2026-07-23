@@ -231,22 +231,41 @@ func TestUnreadCountReturnsCorrectValue(t *testing.T) {
 // --- Conversation (thread) mark-read test ---
 
 func TestConversationMarksUnreadAsRead(t *testing.T) {
-	// Message from peer (2) to us (1) is unread - should trigger MarkMessagesRead
+	// Message from peer (2) to us (1) is unread - should trigger MarkMessagesRead.
+	// The returned items must also reflect IsRead=true so the wire response is consistent
+	// with the DB state (guards against returning stale IsRead=false after the bulk update).
 	stub := &stubQuerier{
 		messages: []gen.Message{
 			{ID: 1, SenderID: 2, ReceiverID: 1, IsRead: false, Content: "hi", CreatedAt: pgtype.Timestamptz{}},
+			// A message we sent — should remain IsRead=false in the response (we are not the receiver).
+			{ID: 2, SenderID: 1, ReceiverID: 2, IsRead: false, Content: "hey", CreatedAt: pgtype.Timestamptz{}},
 		},
 		users: map[int64]gen.GetUserByIDForMessageRow{
 			2: {ID: 2, Name: "Bob"},
 		},
 	}
 	svc := NewService(stub)
-	_, err := svc.Conversation(context.Background(), 1, 2)
+	items, err := svc.Conversation(context.Background(), 1, 2)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !stub.markedRead {
 		t.Fatal("expected MarkMessagesRead to be called")
+	}
+	// Assert that the returned item where we (userID=1) are the receiver is now IsRead=true.
+	// This fails if the service forgets to update the in-memory slice before serialising.
+	for _, it := range items {
+		if it.ReceiverID == 1 && !it.IsRead {
+			t.Fatalf("item id=%d has ReceiverID=1 but IsRead=false — stale read state returned to caller", it.ID)
+		}
+	}
+	// The message we sent (SenderID=1) should not have its IsRead mutated to true.
+	for _, it := range items {
+		if it.SenderID == 1 && it.ReceiverID == 2 {
+			if it.IsRead {
+				t.Fatalf("item id=%d is a sent message but IsRead was unexpectedly set to true", it.ID)
+			}
+		}
 	}
 }
 
