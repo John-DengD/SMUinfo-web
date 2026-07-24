@@ -1,6 +1,6 @@
 # 校园二手交易平台
 
-按照 `campus-secondhand-platform-plan.md` 的方案实现的 MVP 版本：注册/登录、商品发布与浏览、搜索、收藏、站内消息、线下交易流程、举报、管理后台。
+校园二手交易平台。功能：注册/登录、商品发布与浏览、搜索、收藏、站内消息、线下交易流程、失物招领、公告、举报、意见反馈、校园班车时刻、管理后台。客户端为微信小程序，线上后端 `https://smu.drebel.top`。
 
 ## 维护约定
 
@@ -24,9 +24,9 @@ smu-deal/
 │   ├── cmd/smudeal/         程序入口
 │   ├── internal/            各业务域
 │   └── internal/db/migrations/  自动迁移 SQL 文件
+├── miniprogram/             微信小程序（唯一客户端）
 ├── deploy/smu-deal.service  systemd 服务单元模板
-├── sql/server-setup.md      服务器 PostgreSQL 初始化说明
-└── campus-secondhand-platform-plan.md
+└── sql/server-setup.md      服务器 PostgreSQL 初始化说明
 ```
 
 ## 本地启动
@@ -75,6 +75,8 @@ make run               # 或：go run ./cmd/smudeal
 
 仓库已配置 GitHub Actions：push 到 `main` 分支后，CI 会交叉编译 Linux 静态二进制，通过 SSH 上传到服务器，替换旧二进制，并重启 `smu-deal.service`。服务重启后，二进制自动把新迁移应用到 PostgreSQL，无需在服务器上安装任何数据库工具。
 
+线上：服务监听 `18080`，由 nginx 反代到域名 `smu.drebel.top`（`/api/` → 后端，`/uploads/` 直接由 nginx 提供）。CI 健康检查即 `curl 127.0.0.1:18080/healthz`。
+
 ### 服务器前置条件
 
 1. 安装 PostgreSQL，创建 `smu_deal` 角色和数据库（见 `sql/server-setup.md`）。
@@ -92,7 +94,7 @@ make run               # 或：go run ./cmd/smudeal
 
 ### 关于图片存储
 
-商品图片不存入 PostgreSQL，而是落地到 `UPLOAD_DIR`（生产建议挂数据盘到 `/data/uploads`），DB 只保留 `/uploads/2026-05-28/xxx.jpg` 格式的路径。后期可平滑替换为 MinIO / OSS。
+商品图片不存入 PostgreSQL，而是落地到 `UPLOAD_DIR`（线上为 `/data/smu-deal/uploads`），DB 只保留 `/uploads/2026-05-28/xxx.jpg` 格式的路径。后期可平滑替换为 MinIO / OSS。
 
 ## 功能清单
 
