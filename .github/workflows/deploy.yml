@@ -77,6 +77,6 @@ jobs:
              cp -r /tmp/smudeal-migrations/. '$APP_DIR/migrations/'
              systemctl restart '$SERVICE_NAME'
              sleep 5
-             curl -fsS http://127.0.0.1:8080/healthz
+             curl -fsS http://127.0.0.1:18080/healthz
              systemctl is-active --quiet '$SERVICE_NAME'
              systemctl status --no-pager --lines=20 '$SERVICE_NAME'"

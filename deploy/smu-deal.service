@@ -12,10 +12,12 @@ After=network.target postgresql.service
 Type=simple
 WorkingDirectory=/opt/smu-deal
 ExecStart=/opt/smu-deal/smudeal
-Environment=PORT=8080
+# PORT must match the port nginx proxies /api/ to (see /etc/nginx/sites-enabled/smu-deal.conf).
+Environment=PORT=18080
 Environment=MIGRATIONS_DIR=/opt/smu-deal/migrations
-Environment=UPLOAD_DIR=/data/uploads
-Environment=DB_URL=postgres://smu_deal:CHANGE_ME@localhost:5432/smu_deal?sslmode=disable
+# UPLOAD_DIR is served directly by nginx at /uploads/ — keep it in sync with the nginx alias.
+Environment=UPLOAD_DIR=/data/smu-deal/uploads
+Environment=DB_URL=postgres://smu_deal:CHANGE_ME@127.0.0.1:5432/smu_deal?sslmode=disable
 Environment=JWT_SECRET=CHANGE_ME_AT_LEAST_32_BYTES
 Environment=CORS_ALLOWED_ORIGINS=https://your-domain
 Restart=always
